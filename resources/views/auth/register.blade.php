@@ -88,4 +88,35 @@
             </div>
         </x-authentication-card>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const nameInput = document.getElementById('name');
+
+            if (nameInput) {
+                nameInput.addEventListener('keydown', function (e) {
+                    const forbidden = /[0-9\s]/;
+                    if (forbidden.test(e.key)) {
+                        e.preventDefault();
+                    }
+                });
+
+                nameInput.addEventListener('input', function () {
+                    this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñÜü]/g, '');
+                });
+
+                nameInput.closest('form').addEventListener('submit', function (e) {
+                    const soloLetras = /^[A-Za-zÁÉÍÓÚáéíóúÑñÜü]+$/;
+                    if (!soloLetras.test(nameInput.value)) {
+                        e.preventDefault();
+                        nameInput.setCustomValidity('Solo se permiten letras, sin espacios ni números.');
+                        nameInput.reportValidity();
+                    } else {
+                        nameInput.setCustomValidity('');
+                    }
+                });
+            }
+        });
+    </script>
+
 </x-guest-layout>

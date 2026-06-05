@@ -352,35 +352,9 @@ async def eliminar_moto(request):
 
 # ── Reporte ────────────────────────────────────────────
 async def get_reporte(request):
-    # Obtener filtros de GET o POST
-    busqueda = request.rel_url.query.get('busqueda', '').strip()
-    vehiculo = request.rel_url.query.get('vehiculo', '').strip()
-    
-    # Si es POST, intenta obtener del body también
-    try:
-        if request.method == 'POST':
-            body = await request.json()
-            busqueda = busqueda or body.get('busqueda', '').strip()
-            vehiculo = vehiculo or body.get('vehiculo', '').strip()
-    except Exception:
-        pass
-    
     async with request.app['db'].acquire() as conn:
         async with conn.cursor(aiomysql.DictCursor) as cur:
-            sql = "SELECT * FROM compras_python WHERE 1=1"
-            params = []
-            
-            if busqueda:
-                sql += " AND (comprador LIKE %s OR vehiculo LIKE %s OR documento LIKE %s)"
-                params.extend([f'%{busqueda}%', f'%{busqueda}%', f'%{busqueda}%'])
-            
-            if vehiculo:
-                sql += " AND vehiculo LIKE %s"
-                params.append(f'%{vehiculo}%')
-            
-            sql += " ORDER BY fecha DESC"
-            
-            await cur.execute(sql, params)
+            await cur.execute("SELECT * FROM compras_python ORDER BY fecha DESC")
             compras = await cur.fetchall()
 
     listado = []
@@ -843,8 +817,6 @@ app.router.add_options('/motos/crear',             crear_moto)
 app.router.add_delete('/motos/eliminar/{id}',      eliminar_moto)
 app.router.add_options('/motos/eliminar/{id}',     eliminar_moto)
 app.router.add_get('/reporte',                     get_reporte)
-app.router.add_post('/reporte',                    get_reporte)
-app.router.add_options('/reporte',                 get_reporte)
 app.router.add_delete('/compras/{id}',             eliminar_compra)
 app.router.add_options('/compras/{id}',            eliminar_compra)
 app.router.add_get('/configuracion/perfil',        get_perfil)

@@ -208,20 +208,21 @@
         </div>
     </section>
 
-    <!-- CONTACTO -->
-    <section id="contacto" class="py-5 bg-light">
-        <div class="container text-center">
-            <h2 class="mb-4">📲 Contáctanos</h2>
-            <p class="mb-4">Síguenos en nuestras redes sociales o escríbenos a WhatsApp:</p>
-            <div class="social-icons">
-                <a href="https://facebook.com" target="_blank"><i class="bi bi-facebook"></i></a>
-                <a href="https://instagram.com" target="_blank"><i class="bi bi-instagram"></i></a>
-                <a href="https://wa.me/573001112233" target="_blank"><i class="bi bi-whatsapp"></i></a>
-            </div>
-            <p class="mt-3">Teléfono/WhatsApp: +57 300 111 2233</p>
+   <!-- CONTACTO -->
+<section id="contacto" class="py-5 bg-light">
+    <div class="container text-center">
+        <h2 class="mb-4">📲 Contáctanos</h2>
+        <p class="mb-4">Síguenos en nuestras redes sociales o escríbenos a WhatsApp:</p>
+        <div class="social-icons">
+            <a href="https://www.facebook.com/share/1HmvLZj8BG/" target="_blank"><i class="bi bi-facebook"></i></a>
+            <a href="https://www.instagram.com/camilo._valbuena_" target="_blank"><i class="bi bi-instagram"></i></a>
+            <a href="https://wa.me/573219013217" target="_blank"><i class="bi bi-whatsapp"></i></a>
+            <a href="https://mail.google.com/mail/?view=cm&to=juancamilovalbuena3@gmail.com" target="_blank"><i class="bi bi-envelope-fill"></i></a>
         </div>
-    </section>
-
+        <p class="mt-3">Teléfono/WhatsApp: +57 321 901 3217</p>
+        <p class="mt-1">Correo: juancamilovalbuena3@gmail.com</p>
+    </div>
+</section>
     <!-- FOOTER -->
     <footer class="bg-dark text-white text-center py-4">
         <p class="mb-0">&copy; {{ date('Y') }} Motrix. Todos los derechos reservados.</p>

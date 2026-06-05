@@ -14,9 +14,33 @@ class VehiculoController extends Controller
 {
     protected $pythonUrl;
 
+    // Stock máximo por tipo de vehículo
+    const STOCK_MAX_CARRO = 50;
+    const STOCK_MAX_MOTO  = 50;
+
     public function __construct()
     {
         $this->pythonUrl = env('PYTHON_MICROSERVICE_URL', 'http://127.0.0.1:8080');
+    }
+
+    /**
+     * Calcula las unidades disponibles restando las vendidas al stock máximo.
+     */
+    protected function calcularDisponibles(string $nombreVehiculo, string $tipo): array
+    {
+        $stockMaximo = $tipo === 'moto' ? self::STOCK_MAX_MOTO : self::STOCK_MAX_CARRO;
+
+        $vendidos = Compra::where('tipo', $tipo)
+            ->where('vehiculo', $nombreVehiculo)
+            ->sum('cantidad');
+
+        $disponibles = max(0, $stockMaximo - (int) $vendidos);
+
+        return [
+            'stockMaximo'  => $stockMaximo,
+            'vendidos'     => (int) $vendidos,
+            'disponibles'  => $disponibles,
+        ];
     }
 
     public function carros()
@@ -78,17 +102,26 @@ class VehiculoController extends Controller
             return redirect()->route('carros')->with('error', 'No se pudo conectar con el microservicio.');
         }
 
-        // ✅ FIX: normalizar la respuesta — Python puede devolver el producto
-        // directamente o anidado bajo la clave 'producto'
         $vehiculo = isset($data['producto']) ? $data['producto'] : $data;
 
-        // Garantizar que siempre existan las claves necesarias para la vista
         $vehiculo['nombre'] = ($vehiculo['nombre'] ?? null)
             ?: trim(($vehiculo['marca'] ?? '') . ' ' . ($vehiculo['modelo'] ?? 'Vehículo'));
         $vehiculo['precio'] = (float) ($vehiculo['precio'] ?? 0);
         $vehiculo['id']     = $vehiculo['id'] ?? $id;
 
-        return view('vehiculos.comprar', ['vehiculo' => $vehiculo, 'tipo' => 'carro']);
+        $stock = $this->calcularDisponibles($vehiculo['nombre'], 'carro');
+
+        if ($stock['disponibles'] <= 0) {
+            return redirect()->route('carros')
+                ->with('error', "❌ {$vehiculo['nombre']} ya no está disponible. Se agotaron las {$stock['stockMaximo']} unidades.");
+        }
+
+        return view('vehiculos.comprar', [
+            'vehiculo'    => $vehiculo,
+            'tipo'        => 'carro',
+            'disponibles' => $stock['disponibles'],
+            'stockMaximo' => $stock['stockMaximo'],
+        ]);
     }
 
     public function formComprarMoto($id)
@@ -100,7 +133,6 @@ class VehiculoController extends Controller
             return redirect()->route('motos')->with('error', 'No se pudo conectar con el microservicio.');
         }
 
-        // ✅ FIX: mismo normalizado que en formComprarCarro
         $vehiculo = isset($data['producto']) ? $data['producto'] : $data;
 
         $vehiculo['nombre'] = ($vehiculo['nombre'] ?? null)
@@ -108,11 +140,39 @@ class VehiculoController extends Controller
         $vehiculo['precio'] = (float) ($vehiculo['precio'] ?? 0);
         $vehiculo['id']     = $vehiculo['id'] ?? $id;
 
-        return view('vehiculos.comprar', ['vehiculo' => $vehiculo, 'tipo' => 'moto']);
+        $stock = $this->calcularDisponibles($vehiculo['nombre'], 'moto');
+
+        if ($stock['disponibles'] <= 0) {
+            return redirect()->route('motos')
+                ->with('error', "❌ {$vehiculo['nombre']} ya no está disponible. Se agotaron las {$stock['stockMaximo']} unidades.");
+        }
+
+        return view('vehiculos.comprar', [
+            'vehiculo'    => $vehiculo,
+            'tipo'        => 'moto',
+            'disponibles' => $stock['disponibles'],
+            'stockMaximo' => $stock['stockMaximo'],
+        ]);
     }
 
     public function comprarCarro(Request $request, $id)
     {
+        try {
+            $response = Http::timeout(5)->get("{$this->pythonUrl}/producto/{$id}");
+            $data = $response->json();
+            $vehiculo = isset($data['producto']) ? $data['producto'] : $data;
+            $nombreVehiculo = ($vehiculo['nombre'] ?? null)
+                ?: trim(($vehiculo['marca'] ?? '') . ' ' . ($vehiculo['modelo'] ?? 'Vehículo'));
+        } catch (\Exception $e) {
+            $nombreVehiculo = null;
+        }
+
+        $stockDisponible = $nombreVehiculo
+            ? $this->calcularDisponibles($nombreVehiculo, 'carro')['disponibles']
+            : self::STOCK_MAX_CARRO;
+
+        $maxCompra = min(50, $stockDisponible);
+
         $request->validate([
             'nombre_comprador' => 'required|string',
             'documento'        => 'required|string',
@@ -120,6 +180,7 @@ class VehiculoController extends Controller
             'metodo_pago'      => 'required|string',
             'telefono'         => 'required|string',
             'direccion'        => 'required|string',
+            'cantidad'         => "required|integer|min:1|max:{$maxCompra}",
         ]);
 
         try {
@@ -142,7 +203,6 @@ class VehiculoController extends Controller
             return redirect()->route('carros')->with('error', $resultado['error'] ?? 'Error desconocido en el microservicio.');
         }
 
-        // ✅ FIX: Python devuelve 'vehiculo', 'precio_unitario' y 'cantidad' directamente
         $nombreVehiculo = $resultado['vehiculo'] ?? 'Carro';
         $precioUnitario = (float) ($resultado['precio_unitario'] ?? 0);
         $cantidad       = max(1, (int) ($resultado['cantidad'] ?? $request->cantidad ?? 1));
@@ -175,6 +235,22 @@ class VehiculoController extends Controller
 
     public function comprarMoto(Request $request, $id)
     {
+        try {
+            $response = Http::timeout(5)->get("{$this->pythonUrl}/moto/{$id}");
+            $data = $response->json();
+            $vehiculo = isset($data['producto']) ? $data['producto'] : $data;
+            $nombreVehiculo = ($vehiculo['nombre'] ?? null)
+                ?: trim(($vehiculo['marca'] ?? '') . ' ' . ($vehiculo['modelo'] ?? 'Moto'));
+        } catch (\Exception $e) {
+            $nombreVehiculo = null;
+        }
+
+        $stockDisponible = $nombreVehiculo
+            ? $this->calcularDisponibles($nombreVehiculo, 'moto')['disponibles']
+            : self::STOCK_MAX_MOTO;
+
+        $maxCompra = min(50, $stockDisponible);
+
         $request->validate([
             'nombre_comprador' => 'required|string',
             'documento'        => 'required|string',
@@ -182,6 +258,7 @@ class VehiculoController extends Controller
             'metodo_pago'      => 'required|string',
             'telefono'         => 'required|string',
             'direccion'        => 'required|string',
+            'cantidad'         => "required|integer|min:1|max:{$maxCompra}",
         ]);
 
         try {
@@ -204,7 +281,6 @@ class VehiculoController extends Controller
             return redirect()->route('motos')->with('error', $resultado['error'] ?? 'Error desconocido en el microservicio.');
         }
 
-        // ✅ FIX: Python devuelve 'vehiculo', 'precio_unitario' y 'cantidad' directamente
         $nombreVehiculo = $resultado['vehiculo'] ?? 'Moto';
         $precioUnitario = (float) ($resultado['precio_unitario'] ?? 0);
         $cantidad       = max(1, (int) ($resultado['cantidad'] ?? $request->cantidad ?? 1));
@@ -245,14 +321,41 @@ class VehiculoController extends Controller
             $reporte = [];
             $error   = 'No se pudo conectar con el microservicio Python.';
         }
-        // Tarjetas calculadas desde Laravel (precio_unitario x cantidad)
-        $compras = Compra::orderBy('created_at', 'desc')->get();
+
+        $compras = Compra::orderBy('created_at', 'desc')
+            ->when(request('busqueda'), fn($q, $v) => $q->where('nombre_comprador', 'like', "%{$v}%")
+                ->orWhere('documento', 'like', "%{$v}%"))
+            ->when(request('vehiculo'), fn($q, $v) => $q->where('vehiculo', 'like', "%{$v}%"))
+            ->get();
+
+        $stockCarros = Compra::where('tipo', 'carro')
+            ->selectRaw('vehiculo, SUM(cantidad) as total')
+            ->groupBy('vehiculo')
+            ->orderByDesc('total')
+            ->get();
+
+        $stockMotos = Compra::where('tipo', 'moto')
+            ->selectRaw('vehiculo, SUM(cantidad) as total')
+            ->groupBy('vehiculo')
+            ->orderByDesc('total')
+            ->get();
+
+        $topMes = Compra::whereYear('created_at', now()->year)
+            ->whereMonth('created_at', now()->month)
+            ->selectRaw('vehiculo, SUM(cantidad) as total')
+            ->groupBy('vehiculo')
+            ->orderByDesc('total')
+            ->first();
 
         $statsLaravel = [
-            'total_ventas' => $compras->sum('cantidad'),
-            'total_dinero' => $compras->sum(fn($c) => $c->precio_unitario * $c->cantidad),
-            'total_carros' => $compras->where('tipo', 'carro')->sum('cantidad'),
-            'total_motos'  => $compras->where('tipo', 'moto')->sum('cantidad'),
+            'total_ventas'      => $compras->sum('cantidad'),
+            'total_dinero'      => $compras->sum(fn($c) => $c->precio_unitario * $c->cantidad),
+            'total_carros'      => $compras->where('tipo', 'carro')->sum('cantidad'),
+            'total_motos'       => $compras->where('tipo', 'moto')->sum('cantidad'),
+            'top_vehiculo_mes'  => $topMes->vehiculo ?? 'Ninguno',
+            'top_vehiculo_cant' => $topMes->total ?? 0,
+            'stock_carros'      => $stockCarros,
+            'stock_motos'       => $stockMotos,
         ];
 
         return view('vehiculos.reportes', compact('reporte', 'error', 'compras', 'statsLaravel'));
@@ -340,7 +443,7 @@ class VehiculoController extends Controller
         $vehiculo->save();
 
         try {
-            $tipo = strtolower($request->tipo);
+            $tipo     = strtolower($request->tipo);
             $endpoint = ($tipo === 'moto') ? '/motos/crear' : '/productos/crear';
 
             $payload = [
@@ -448,7 +551,6 @@ class VehiculoController extends Controller
         try {
             $tipo     = strtolower($vehiculo->tipo);
             $endpoint = ($tipo === 'moto') ? '/motos/eliminar' : '/productos/eliminar';
-
             Http::timeout(5)->delete("{$this->pythonUrl}{$endpoint}/{$id}");
         } catch (\Exception $e) {
             // Si Python falla, igual eliminamos de Laravel
@@ -460,8 +562,13 @@ class VehiculoController extends Controller
             ->with('success', 'Vehículo eliminado correctamente.');
     }
 
+    // ✅ ÚNICO CAMBIO: index ahora responde JSON cuando viene de API
     public function index(Request $request)
     {
+        if ($request->expectsJson()) {
+            $vehiculos = Vehiculo::all();
+            return response()->json($vehiculos);
+        }
         return redirect()->route('empleados.index', $request->only(['busqueda', 'tipo']));
     }
 

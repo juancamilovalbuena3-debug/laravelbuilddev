@@ -3,7 +3,23 @@
         <h2 class="font-semibold text-2xl text-gray-800 tracking-tight">Comprar Vehículo</h2>
     </x-slot>
 
+    @php
+        $disponibles = $disponibles ?? 50;
+        $stockMaximo = $stockMaximo ?? 50;
+    @endphp
+
     <div class="max-w-4xl mx-auto p-6 mt-6 space-y-8">
+
+        {{-- ALERTA DE STOCK --}}
+        @if($disponibles <= 0)
+            <div class="p-4 rounded-xl border-l-4 border-red-500 bg-red-50 text-red-800 text-sm font-semibold shadow-sm flex items-center gap-2">
+                🚫 <span>Este vehículo ya no está disponible. Se agotaron las {{ $stockMaximo }} unidades.</span>
+            </div>
+        @elseif($disponibles <= 10)
+            <div class="p-4 rounded-xl border-l-4 border-yellow-400 bg-yellow-50 text-yellow-800 text-sm font-medium shadow-sm flex items-center gap-2">
+                ⚠️ <span>Solo quedan <strong>{{ $disponibles }}</strong> unidad(es) disponibles. ¡No pierdas tu oportunidad!</span>
+            </div>
+        @endif
 
         <!-- Sección Declaración Jurada -->
         <div class="bg-white rounded-xl shadow-lg p-8 border border-gray-200 transition-all hover:shadow-xl" style="font-family: 'Times New Roman', serif;">
@@ -66,26 +82,55 @@
                 </div>
             @endif
 
+            {{-- Si está agotado mostrar mensaje en lugar del formulario --}}
+            @if($disponibles <= 0)
+                <div class="text-center py-10">
+                    <div class="text-6xl mb-4">🚫</div>
+                    <h3 class="text-xl font-bold text-red-700 mb-2">Vehículo agotado</h3>
+                    <p class="text-gray-600 mb-6">No quedan unidades disponibles de <strong>{{ $vehiculo['nombre'] }}</strong>.</p>
+                    <a href="{{ $tipo === 'moto' ? route('motos') : route('carros') }}"
+                       class="bg-black text-white font-semibold px-8 py-3 rounded-xl shadow hover:bg-gray-800 transition-colors">
+                        ← Ver otros vehículos
+                    </a>
+                </div>
+            @else
+
             <form id="formCompra" method="POST"
                   action="{{ $tipo === 'moto' ? route('motos.comprar', $vehiculo['id']) : route('carros.comprar', $vehiculo['id']) }}">
                 @csrf
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
+                    <!-- Nombre -->
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-1">Nombre completo</label>
                         <input type="text" name="nombre_comprador" id="inp_nombre" required
                                value="{{ auth()->user()->name }}"
                                class="w-full border border-gray-300 bg-gray-50 rounded-lg px-4 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm" />
+                        <p class="text-red-500 text-xs mt-1 hidden" id="err-nombre">⚠ Ingresa tu nombre completo (solo letras).</p>
+                        <p class="text-green-600 text-xs mt-1 hidden" id="ok-nombre">✔ Nombre válido.</p>
                     </div>
 
+                    <!-- Documento -->
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-1">Número de documento (CC/NIT)</label>
                         <input type="text" name="documento" id="inp_doc" required placeholder="Ej: 1234567890"
                                class="w-full border border-gray-300 bg-gray-50 rounded-lg px-4 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm" />
+                        <p class="text-red-500 text-xs mt-1 hidden" id="err-doc">⚠ Ingresa un número de documento válido (6 a 15 dígitos).</p>
+                        <p class="text-green-600 text-xs mt-1 hidden" id="ok-doc">✔ Documento válido.</p>
                     </div>
 
-                    <!-- ✅ NUEVO: Selector de Cantidad -->
+                    <!-- ── FECHA DE NACIMIENTO (NUEVO) ────────────────────── -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Fecha de nacimiento</label>
+                        <input type="date" name="fecha_nacimiento" id="inp_nacimiento" required
+                               class="w-full border border-gray-300 bg-gray-50 rounded-lg px-4 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm" />
+                        <p class="text-red-500 text-xs mt-1 hidden" id="err-nacimiento">⚠ Debes ser mayor de 18 años para realizar una compra.</p>
+                        <p class="text-green-600 text-xs mt-1 hidden" id="ok-nacimiento">✔ Edad verificada.</p>
+                    </div>
+                    <!-- ── FIN FECHA DE NACIMIENTO ───────────────────────── -->
+
+                    <!-- Cantidad -->
                     <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-xl border border-blue-200 shadow-sm">
                         <label class="block text-sm font-semibold text-gray-700 mb-3">🔢 Cantidad de unidades</label>
                         <div class="flex items-center gap-4">
@@ -94,7 +139,7 @@
                                 −
                             </button>
                             <input type="number" name="cantidad" id="inp_cantidad"
-                                   value="1" min="1" max="999"
+                                   value="1" min="1" max="{{ $disponibles }}"
                                    oninput="actualizarResumen()"
                                    class="w-20 text-center text-xl font-bold border-2 border-blue-300 rounded-xl px-2 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white shadow-sm" />
                             <button type="button" onclick="cambiarCantidad(1)"
@@ -102,10 +147,13 @@
                                 +
                             </button>
                         </div>
-                        <p class="text-xs text-gray-500 mt-2">Sin límite de unidades. Mínimo: 1.</p>
+                        <p class="text-xs mt-2 {{ $disponibles <= 10 ? 'text-yellow-600 font-semibold' : 'text-gray-500' }}">
+                            Disponibles: <strong>{{ $disponibles }}</strong> de {{ $stockMaximo }} unidades.
+                            @if($disponibles <= 10) ¡Pocas unidades! @endif
+                        </p>
                     </div>
 
-                    <!-- Selector Visual de Color -->
+                    <!-- Color -->
                     <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
                         <label class="block text-sm font-semibold text-gray-700 mb-2">Color deseado</label>
                         <div class="flex flex-wrap gap-3 mb-2">
@@ -127,28 +175,35 @@
                             <option value="Plata">🪙 Plata</option>
                             <option value="Verde">🟩 Verde</option>
                         </select>
+                        <p class="text-red-500 text-xs mt-1 hidden" id="err-color">⚠ Selecciona un color usando los círculos de arriba.</p>
+                        <p class="text-green-600 text-xs mt-1 hidden" id="ok-color">✔ Color seleccionado.</p>
                     </div>
 
+                    <!-- Método de pago -->
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-1">Método de pago</label>
                         <select name="metodo_pago" id="metodo_pago" required
                                 class="w-full border border-gray-300 bg-gray-50 rounded-lg px-4 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm"
-                                onchange="mostrarCampos(this.value)">
+                                onchange="mostrarCampos(this.value); validarMetodo();">
                             <option value="">Seleccione método</option>
                             <option value="Efectivo">💵 Efectivo</option>
                             <option value="Transferencia">🏦 Transferencia bancaria</option>
                             <option value="Tarjeta">💳 Tarjeta de crédito/débito</option>
                             <option value="Cuotas">📅 A cuotas</option>
                         </select>
+                        <p class="text-red-500 text-xs mt-1 hidden" id="err-metodo">⚠ Selecciona un método de pago.</p>
+                        <p class="text-green-600 text-xs mt-1 hidden" id="ok-metodo">✔ Método de pago seleccionado.</p>
                     </div>
 
-                    <!-- Campos dinámicos de pago -->
+                    <!-- Banco (transferencia) -->
                     <div id="campo-banco" class="hidden">
                         <label class="block text-sm font-semibold text-gray-700 mb-1">Banco</label>
                         <input type="text" name="banco" id="inp_banco" placeholder="Ej: Bancolombia"
                                class="w-full border border-gray-300 bg-gray-50 rounded-lg px-4 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm" />
+                        <p class="text-red-500 text-xs mt-1 hidden" id="err-banco">⚠ Ingresa el nombre del banco.</p>
                     </div>
 
+                    <!-- Cuotas -->
                     <div id="campo-cuotas" class="hidden">
                         <label class="block text-sm font-semibold text-gray-700 mb-1">Número de cuotas</label>
                         <select name="cuotas" id="inp_cuotas" class="w-full border border-gray-300 bg-gray-50 rounded-lg px-4 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm">
@@ -161,46 +216,64 @@
                         </select>
                     </div>
 
+                    <!-- Tarjeta número -->
                     <div id="campo-tarjeta-numero" class="hidden">
                         <label class="block text-sm font-semibold text-gray-700 mb-1">Número de tarjeta</label>
                         <input type="text" name="tarjeta_numero" id="inp_tarjeta_num"
                                placeholder="1234 5678 9012 3456" maxlength="19"
                                class="w-full border border-gray-300 bg-gray-50 rounded-lg px-4 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm font-mono"
                                oninput="formatearTarjeta(this)" />
+                        <p class="text-red-500 text-xs mt-1 hidden" id="err-tarjeta-num">⚠ Ingresa los 16 dígitos de tu tarjeta.</p>
+                        <p class="text-green-600 text-xs mt-1 hidden" id="ok-tarjeta-num">✔ Número de tarjeta válido.</p>
                     </div>
 
+                    <!-- Tarjeta nombre -->
                     <div id="campo-tarjeta-nombre" class="hidden">
                         <label class="block text-sm font-semibold text-gray-700 mb-1">Nombre en la tarjeta</label>
                         <input type="text" name="tarjeta_nombre" id="inp_tarjeta_nom"
                                placeholder="Ej: CAMILO VALBUENA"
                                class="w-full border border-gray-300 bg-gray-50 rounded-lg px-4 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm uppercase" />
+                        <p class="text-red-500 text-xs mt-1 hidden" id="err-tarjeta-nom">⚠ Ingresa el nombre tal como aparece en la tarjeta.</p>
+                        <p class="text-green-600 text-xs mt-1 hidden" id="ok-tarjeta-nom">✔ Nombre válido.</p>
                     </div>
 
+                    <!-- Tarjeta vencimiento -->
                     <div id="campo-tarjeta-venc" class="hidden">
                         <label class="block text-sm font-semibold text-gray-700 mb-1">Fecha de vencimiento</label>
                         <input type="text" name="tarjeta_vencimiento" id="inp_tarjeta_venc"
                                placeholder="MM/AA" maxlength="5"
                                class="w-full border border-gray-300 bg-gray-50 rounded-lg px-4 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm text-center"
                                oninput="formatearVencimiento(this)" />
+                        <p class="text-red-500 text-xs mt-1 hidden" id="err-tarjeta-venc">⚠ Formato MM/AA — la tarjeta no puede estar vencida.</p>
+                        <p class="text-green-600 text-xs mt-1 hidden" id="ok-tarjeta-venc">✔ Fecha válida.</p>
                     </div>
 
+                    <!-- CVV -->
                     <div id="campo-tarjeta-cvv" class="hidden">
                         <label class="block text-sm font-semibold text-gray-700 mb-1">CVV</label>
                         <input type="password" name="tarjeta_cvv" id="inp_tarjeta_cvv"
                                placeholder="***" maxlength="4"
                                class="w-full border border-gray-300 bg-gray-50 rounded-lg px-4 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm text-center" />
+                        <p class="text-red-500 text-xs mt-1 hidden" id="err-tarjeta-cvv">⚠ El CVV debe tener 3 o 4 dígitos.</p>
+                        <p class="text-green-600 text-xs mt-1 hidden" id="ok-tarjeta-cvv">✔ CVV válido.</p>
                     </div>
 
+                    <!-- Teléfono -->
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-1">Teléfono de contacto</label>
                         <input type="tel" name="telefono" id="inp_tel" required placeholder="Ej: 3001234567"
                                class="w-full border border-gray-300 bg-gray-50 rounded-lg px-4 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm" />
+                        <p class="text-red-500 text-xs mt-1 hidden" id="err-tel">⚠ Ingresa un teléfono colombiano válido (10 dígitos, empieza por 3).</p>
+                        <p class="text-green-600 text-xs mt-1 hidden" id="ok-tel">✔ Teléfono válido.</p>
                     </div>
 
+                    <!-- Dirección -->
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-1">Dirección de entrega</label>
                         <input type="text" name="direccion" id="inp_dir" required placeholder="Ej: Calle 123 # 45-67"
                                class="w-full border border-gray-300 bg-gray-50 rounded-lg px-4 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm" />
+                        <p class="text-red-500 text-xs mt-1 hidden" id="err-dir">⚠ Ingresa una dirección válida (mínimo 8 caracteres).</p>
+                        <p class="text-green-600 text-xs mt-1 hidden" id="ok-dir">✔ Dirección válida.</p>
                     </div>
 
                 </div>
@@ -212,7 +285,7 @@
                               class="w-full border border-gray-300 bg-gray-50 rounded-lg px-4 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm"></textarea>
                 </div>
 
-                <!-- Resumen actualizado con cantidad -->
+                <!-- Resumen -->
                 <div class="mt-8 p-5 bg-blue-50/50 rounded-xl border border-blue-100 shadow-sm">
                     <h4 class="font-bold text-blue-900 mb-3 flex items-center gap-2">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
@@ -230,6 +303,11 @@
                             ${{ number_format($vehiculo['precio']) }} COP
                         </p>
 
+                        <p class="text-gray-600">Disponibles:</p>
+                        <p class="font-semibold text-right {{ $disponibles <= 10 ? 'text-yellow-600' : 'text-green-600' }}">
+                            {{ $disponibles }} unidad(es)
+                        </p>
+
                         <p class="text-gray-600">Cantidad:</p>
                         <p class="font-semibold text-gray-900 text-right" id="resumen-cantidad">1</p>
 
@@ -244,10 +322,12 @@
                 <div class="mt-8 border border-gray-200 rounded-xl p-5 bg-gray-50 shadow-sm">
                     <h4 class="font-bold text-gray-800 mb-2 flex items-center gap-2">✍️ Firma del Comprador</h4>
                     <p class="text-sm text-gray-500 mb-3">Firme en el recuadro inferior con el mouse o su dedo.</p>
-                    <div class="bg-white p-1 border border-gray-300 rounded-lg shadow-inner">
+                    <div class="bg-white p-1 border border-gray-300 rounded-lg shadow-inner" id="firma-box">
                         <canvas id="firmaCanvas" width="600" height="150" class="w-full cursor-crosshair rounded"></canvas>
                     </div>
                     <input type="hidden" name="firma_comprador" id="firma_comprador" />
+                    <p class="text-red-500 text-xs mt-2 hidden" id="err-firma">⚠ Por favor firma en el recuadro antes de continuar.</p>
+                    <p class="text-green-600 text-xs mt-2 hidden" id="ok-firma">✔ Firma registrada.</p>
                     <div class="mt-3 flex justify-end">
                         <button type="button" onclick="limpiarFirma()"
                                 class="bg-white hover:bg-gray-100 text-gray-700 font-medium border border-gray-300 px-4 py-1.5 rounded-lg text-sm shadow-sm transition-colors flex items-center gap-1">
@@ -277,6 +357,7 @@
                 </div>
 
             </form>
+            @endif
         </div>
     </div>
 
@@ -309,80 +390,287 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
-        // ✅ Precio unitario desde PHP (sin formato, solo número)
         const precioUnitario = {{ $vehiculo['precio'] }};
+        const maxDisponibles = {{ $disponibles }};
 
         const hoy = new Date().toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' });
-        document.getElementById('fecha-hoy').textContent = hoy;
+        document.getElementById('fecha-hoy').textContent   = hoy;
         document.getElementById('fecha-tabla').textContent = hoy;
 
-        // ✅ Función para formatear números con separadores de miles
+        // Fijar fecha máxima del input de nacimiento = hoy - 18 años
+        (function() {
+            const inp = document.getElementById('inp_nacimiento');
+            if (!inp) return;
+            const hoyDate  = new Date();
+            const max18    = new Date(hoyDate.getFullYear() - 18, hoyDate.getMonth(), hoyDate.getDate());
+            inp.max = max18.toISOString().split('T')[0];   // no permite seleccionar fecha futura a 18 años atrás
+            inp.min = '1900-01-01';
+        })();
+
         function formatearNumero(num) {
             return new Intl.NumberFormat('es-CO').format(num);
         }
 
-        // ✅ Botones +/- cantidad
+        // ── Utilidad mensajes ─────────────────────────────────────
+        function mostrarError(idErr, idOk) {
+            document.getElementById(idErr).classList.remove('hidden');
+            document.getElementById(idOk).classList.add('hidden');
+        }
+        function mostrarOk(idErr, idOk) {
+            document.getElementById(idErr).classList.add('hidden');
+            document.getElementById(idOk).classList.remove('hidden');
+        }
+        function limpiarMensaje(idErr, idOk) {
+            document.getElementById(idErr).classList.add('hidden');
+            document.getElementById(idOk).classList.add('hidden');
+        }
+
+        // ── Resaltar campo ────────────────────────────────────────
+        function marcarCampo(el, esValido) {
+            if (esValido) {
+                el.classList.remove('border-red-400', 'bg-red-50');
+                el.classList.add('border-green-400');
+            } else {
+                el.classList.remove('border-green-400');
+                el.classList.add('border-red-400', 'bg-red-50');
+            }
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // VALIDACIONES INDIVIDUALES
+        // ══════════════════════════════════════════════════════════
+
+        function validarNombre() {
+            const el  = document.getElementById('inp_nombre');
+            const val = el.value.trim();
+            const ok  = val.length >= 3 && /^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s\-']+$/.test(val);
+            marcarCampo(el, ok);
+            ok ? mostrarOk('err-nombre','ok-nombre') : mostrarError('err-nombre','ok-nombre');
+            return ok;
+        }
+
+        function validarDocumento() {
+            const el  = document.getElementById('inp_doc');
+            const val = el.value.trim().replace(/\s/g, '');
+            const ok  = /^\d{6,15}$/.test(val);
+            marcarCampo(el, ok);
+            ok ? mostrarOk('err-doc','ok-doc') : mostrarError('err-doc','ok-doc');
+            return ok;
+        }
+
+        // ── VALIDACIÓN FECHA DE NACIMIENTO (NUEVA) ───────────────
+        function validarNacimiento() {
+            const el  = document.getElementById('inp_nacimiento');
+            const val = el.value;
+            let ok = false;
+            if (val) {
+                const nacimiento = new Date(val);
+                const hoyDate    = new Date();
+                // Calcular edad exacta en años
+                let edad = hoyDate.getFullYear() - nacimiento.getFullYear();
+                const m  = hoyDate.getMonth() - nacimiento.getMonth();
+                if (m < 0 || (m === 0 && hoyDate.getDate() < nacimiento.getDate())) edad--;
+                ok = edad >= 18 && edad <= 120;
+            }
+            marcarCampo(el, ok);
+            ok ? mostrarOk('err-nacimiento','ok-nacimiento') : mostrarError('err-nacimiento','ok-nacimiento');
+            return ok;
+        }
+        // ── FIN VALIDACIÓN FECHA DE NACIMIENTO ───────────────────
+
+        function validarColor() {
+            const val = document.getElementById('inp_color').value;
+            const ok  = val !== '';
+            ok ? mostrarOk('err-color','ok-color') : mostrarError('err-color','ok-color');
+            return ok;
+        }
+
+        function validarMetodo() {
+            const val = document.getElementById('metodo_pago').value;
+            const ok  = val !== '';
+            ok ? mostrarOk('err-metodo','ok-metodo') : mostrarError('err-metodo','ok-metodo');
+            return ok;
+        }
+
+        function validarBanco() {
+            const el  = document.getElementById('inp_banco');
+            const val = el.value.trim();
+            const visible = !document.getElementById('campo-banco').classList.contains('hidden');
+            if (!visible) return true;
+            const ok = val.length >= 3;
+            marcarCampo(el, ok);
+            document.getElementById('err-banco').classList.toggle('hidden', ok);
+            return ok;
+        }
+
+        function validarTarjetaNum() {
+            const el  = document.getElementById('inp_tarjeta_num');
+            const val = el.value.replace(/\s/g, '');
+            const visible = !document.getElementById('campo-tarjeta-numero').classList.contains('hidden');
+            if (!visible) return true;
+            const ok = /^\d{16}$/.test(val);
+            marcarCampo(el, ok);
+            ok ? mostrarOk('err-tarjeta-num','ok-tarjeta-num') : mostrarError('err-tarjeta-num','ok-tarjeta-num');
+            return ok;
+        }
+
+        function validarTarjetaNom() {
+            const el  = document.getElementById('inp_tarjeta_nom');
+            const val = el.value.trim();
+            const visible = !document.getElementById('campo-tarjeta-nombre').classList.contains('hidden');
+            if (!visible) return true;
+            const ok = val.length >= 3 && /^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]+$/.test(val);
+            marcarCampo(el, ok);
+            ok ? mostrarOk('err-tarjeta-nom','ok-tarjeta-nom') : mostrarError('err-tarjeta-nom','ok-tarjeta-nom');
+            return ok;
+        }
+
+        function validarTarjetaVenc() {
+            const el  = document.getElementById('inp_tarjeta_venc');
+            const val = el.value.trim();
+            const visible = !document.getElementById('campo-tarjeta-venc').classList.contains('hidden');
+            if (!visible) return true;
+            let ok = false;
+            if (/^\d{2}\/\d{2}$/.test(val)) {
+                const [mm, aa] = val.split('/').map(Number);
+                const ahora = new Date();
+                const expira = new Date(2000 + aa, mm - 1, 1);
+                ok = mm >= 1 && mm <= 12 && expira > ahora;
+            }
+            marcarCampo(el, ok);
+            ok ? mostrarOk('err-tarjeta-venc','ok-tarjeta-venc') : mostrarError('err-tarjeta-venc','ok-tarjeta-venc');
+            return ok;
+        }
+
+        function validarCvv() {
+            const el  = document.getElementById('inp_tarjeta_cvv');
+            const val = el.value.trim();
+            const visible = !document.getElementById('campo-tarjeta-cvv').classList.contains('hidden');
+            if (!visible) return true;
+            const ok = /^\d{3,4}$/.test(val);
+            marcarCampo(el, ok);
+            ok ? mostrarOk('err-tarjeta-cvv','ok-tarjeta-cvv') : mostrarError('err-tarjeta-cvv','ok-tarjeta-cvv');
+            return ok;
+        }
+
+        function validarTelefono() {
+            const el  = document.getElementById('inp_tel');
+            const val = el.value.trim().replace(/\s/g, '');
+            const ok  = /^3\d{9}$/.test(val);
+            marcarCampo(el, ok);
+            ok ? mostrarOk('err-tel','ok-tel') : mostrarError('err-tel','ok-tel');
+            return ok;
+        }
+
+        function validarDireccion() {
+            const el  = document.getElementById('inp_dir');
+            const val = el.value.trim();
+            const ok  = val.length >= 8;
+            marcarCampo(el, ok);
+            ok ? mostrarOk('err-dir','ok-dir') : mostrarError('err-dir','ok-dir');
+            return ok;
+        }
+
+        let firmaRealizada = false;
+        function validarFirma() {
+            const ok = firmaRealizada;
+            const box = document.getElementById('firma-box');
+            box.classList.toggle('border-red-400', !ok);
+            box.classList.toggle('border-green-400', ok);
+            ok ? mostrarOk('err-firma','ok-firma') : mostrarError('err-firma','ok-firma');
+            return ok;
+        }
+
+        // ── Listeners en tiempo real ──────────────────────────────
+        document.getElementById('inp_nombre').addEventListener('input', validarNombre);
+        document.getElementById('inp_doc').addEventListener('input', validarDocumento);
+        document.getElementById('inp_nacimiento').addEventListener('change', validarNacimiento); // ← NUEVO
+        document.getElementById('inp_tel').addEventListener('input', validarTelefono);
+        document.getElementById('inp_dir').addEventListener('input', validarDireccion);
+        document.getElementById('inp_banco').addEventListener('input', validarBanco);
+        document.getElementById('inp_tarjeta_num').addEventListener('input', validarTarjetaNum);
+        document.getElementById('inp_tarjeta_nom').addEventListener('input', validarTarjetaNom);
+        document.getElementById('inp_tarjeta_venc').addEventListener('input', validarTarjetaVenc);
+        document.getElementById('inp_tarjeta_cvv').addEventListener('input', validarCvv);
+
+        // ── Validar todo antes de abrir el modal ──────────────────
+        function validarTodo() {
+            const n  = validarNombre();
+            const d  = validarDocumento();
+            const na = validarNacimiento();   // ← NUEVO
+            const c  = validarColor();
+            const m  = validarMetodo();
+            const b  = validarBanco();
+            const tn = validarTarjetaNum();
+            const tno= validarTarjetaNom();
+            const tv = validarTarjetaVenc();
+            const tc = validarCvv();
+            const t  = validarTelefono();
+            const dir= validarDireccion();
+            const f  = validarFirma();
+            return n && d && na && c && m && b && tn && tno && tv && tc && t && dir && f;
+        }
+
+        // ── Cantidad ──────────────────────────────────────────────
         function cambiarCantidad(delta) {
             const inp = document.getElementById('inp_cantidad');
+            if (!inp) return;
             let val = parseInt(inp.value) || 1;
-            val = Math.max(1, val + delta);
+            val = Math.min(maxDisponibles, Math.max(1, val + delta));
             inp.value = val;
             actualizarResumen();
         }
 
-        // ✅ Actualiza el resumen, la declaración y el modal en tiempo real
         function actualizarResumen() {
             const inp = document.getElementById('inp_cantidad');
+            if (!inp) return;
             let cantidad = parseInt(inp.value) || 1;
-            if (cantidad < 1) { cantidad = 1; inp.value = 1; }
-
-            const total = precioUnitario * cantidad;
+            if (cantidad < 1)              { cantidad = 1;              inp.value = 1; }
+            if (cantidad > maxDisponibles) { cantidad = maxDisponibles; inp.value = maxDisponibles; }
+            const total    = precioUnitario * cantidad;
             const totalStr = '$' + formatearNumero(total) + ' COP';
-
-            // Resumen del formulario
-            document.getElementById('resumen-cantidad').textContent = cantidad;
-            document.getElementById('resumen-total').textContent = totalStr;
-
-            // Tabla de declaración jurada
+            document.getElementById('resumen-cantidad').textContent     = cantidad;
+            document.getElementById('resumen-total').textContent        = totalStr;
             document.getElementById('resumen-cantidad-doc').textContent = cantidad;
-            document.getElementById('resumen-total-doc').textContent = '$' + formatearNumero(total);
-
-            // Modal
-            document.getElementById('modal-cantidad').textContent = cantidad;
-            document.getElementById('modal-total').textContent = totalStr;
+            document.getElementById('resumen-total-doc').textContent    = '$' + formatearNumero(total);
+            document.getElementById('modal-cantidad').textContent       = cantidad;
+            document.getElementById('modal-total').textContent          = totalStr;
         }
 
-        // Escuchar cambio directo en el input de cantidad
-        document.getElementById('inp_cantidad').addEventListener('input', actualizarResumen);
+        const inpCantidad = document.getElementById('inp_cantidad');
+        if (inpCantidad) inpCantidad.addEventListener('input', actualizarResumen);
 
-        // Lógica de Swatches de Color
+        // ── Color ─────────────────────────────────────────────────
         function seleccionarColor(color, btnElement) {
             document.getElementById('inp_color').value = color;
             document.querySelectorAll('.color-swatch').forEach(el =>
                 el.classList.remove('ring-4', 'ring-blue-400', 'scale-110'));
             btnElement.classList.add('ring-4', 'ring-blue-400', 'scale-110');
+            validarColor();
         }
 
-        // Lógica Modal de Confirmación
+        // ── Modal ─────────────────────────────────────────────────
         function intentarConfirmar() {
-            const form = document.getElementById('formCompra');
-            if (form.reportValidity()) {
-                document.getElementById('firma_comprador').value = canvas.toDataURL('image/png');
-                actualizarResumen(); // asegurar datos frescos en modal
-                const modal = document.getElementById('modalConfirmacion');
-                const contenido = document.getElementById('modalContenido');
-                modal.classList.remove('hidden');
-                setTimeout(() => {
-                    modal.classList.remove('opacity-0');
-                    modal.classList.add('opacity-100');
-                    contenido.classList.remove('scale-95');
-                    contenido.classList.add('scale-100');
-                }, 10);
+            if (!validarTodo()) {
+                const primerError = document.querySelector('[id^="err-"]:not(.hidden)');
+                if (primerError) primerError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
             }
+            document.getElementById('firma_comprador').value = canvas.toDataURL('image/png');
+            actualizarResumen();
+            const modal    = document.getElementById('modalConfirmacion');
+            const contenido = document.getElementById('modalContenido');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modal.classList.add('opacity-100');
+                contenido.classList.remove('scale-95');
+                contenido.classList.add('scale-100');
+            }, 10);
         }
 
         function cerrarModal() {
-            const modal = document.getElementById('modalConfirmacion');
+            const modal    = document.getElementById('modalConfirmacion');
             const contenido = document.getElementById('modalContenido');
             modal.classList.remove('opacity-100');
             modal.classList.add('opacity-0');
@@ -396,14 +684,15 @@
             document.getElementById('formCompra').submit();
         }
 
+        // ── Campos dinámicos de pago ──────────────────────────────
         function mostrarCampos(valor) {
             document.getElementById('campo-banco').classList.toggle('hidden', valor !== 'Transferencia');
             document.getElementById('campo-cuotas').classList.toggle('hidden', valor !== 'Cuotas');
             const esTarjeta = valor === 'Tarjeta';
             document.getElementById('campo-tarjeta-numero').classList.toggle('hidden', !esTarjeta);
             document.getElementById('campo-tarjeta-nombre').classList.toggle('hidden', !esTarjeta);
-            document.getElementById('campo-tarjeta-venc').classList.toggle('hidden',  !esTarjeta);
-            document.getElementById('campo-tarjeta-cvv').classList.toggle('hidden',   !esTarjeta);
+            document.getElementById('campo-tarjeta-venc').classList.toggle('hidden',   !esTarjeta);
+            document.getElementById('campo-tarjeta-cvv').classList.toggle('hidden',    !esTarjeta);
         }
 
         function formatearTarjeta(input) {
@@ -417,9 +706,10 @@
             input.value = val;
         }
 
+        // ── getDatos / PDF / CSV ──────────────────────────────────
         function getDatos() {
-            const cantidad = parseInt(document.getElementById('inp_cantidad').value) || 1;
-            const total = precioUnitario * cantidad;
+            const cantidad = parseInt(document.getElementById('inp_cantidad')?.value) || 1;
+            const total    = precioUnitario * cantidad;
             return {
                 vehiculo:  '{{ $vehiculo['nombre'] }}',
                 precio:    '${{ number_format($vehiculo['precio']) }} COP',
@@ -427,20 +717,20 @@
                 cantidad:  cantidad,
                 tipo:      '{{ ucfirst($tipo) }}',
                 fecha:     hoy,
-                nombre:    document.getElementById('inp_nombre')?.value || '',
-                documento: document.getElementById('inp_doc')?.value    || '',
-                color:     document.getElementById('inp_color')?.value  || '',
-                metodo:    document.getElementById('metodo_pago')?.value || '',
-                telefono:  document.getElementById('inp_tel')?.value    || '',
-                direccion: document.getElementById('inp_dir')?.value    || '',
-                obs:       document.getElementById('inp_obs')?.value    || '',
+                nombre:    document.getElementById('inp_nombre')?.value    || '',
+                documento: document.getElementById('inp_doc')?.value       || '',
+                color:     document.getElementById('inp_color')?.value     || '',
+                metodo:    document.getElementById('metodo_pago')?.value   || '',
+                telefono:  document.getElementById('inp_tel')?.value       || '',
+                direccion: document.getElementById('inp_dir')?.value       || '',
+                obs:       document.getElementById('inp_obs')?.value       || '',
             };
         }
 
         function descargarPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            const d = getDatos();
+            const d   = getDatos();
             doc.setFontSize(14); doc.setFont('times', 'bold');
             doc.text('DECLARACIÓN JURADA DE MEDIO DE PAGO', 105, 20, { align: 'center' });
             doc.setFontSize(10); doc.setFont('times', 'normal');
@@ -493,29 +783,58 @@
             a.click(); URL.revokeObjectURL(url);
         }
 
-        // Lógica de Firma
-        const canvas = document.getElementById('firmaCanvas');
-        const ctx    = canvas.getContext('2d');
-        let firmando = false;
+        // ── Firma ─────────────────────────────────────────────────
+        const canvas  = document.getElementById('firmaCanvas');
+        const ctx     = canvas ? canvas.getContext('2d') : null;
+        let firmando  = false;
 
-        canvas.addEventListener('mousedown', e => { firmando = true; ctx.beginPath(); ctx.moveTo(e.offsetX, e.offsetY); });
-        canvas.addEventListener('mousemove', e => {
-            if (!firmando) return;
-            ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.strokeStyle = '#000';
-            ctx.lineTo(e.offsetX, e.offsetY); ctx.stroke();
-        });
-        canvas.addEventListener('mouseup',    () => { firmando = false; guardarFirma(); });
-        canvas.addEventListener('mouseleave', () => { firmando = false; });
-        canvas.addEventListener('touchstart', e => { e.preventDefault(); firmando = true; const t = e.touches[0]; const r = canvas.getBoundingClientRect(); ctx.beginPath(); ctx.moveTo(t.clientX-r.left, t.clientY-r.top); });
-        canvas.addEventListener('touchmove',  e => { e.preventDefault(); if (!firmando) return; const t = e.touches[0]; const r = canvas.getBoundingClientRect(); ctx.lineWidth=2; ctx.lineCap='round'; ctx.strokeStyle='#000'; ctx.lineTo(t.clientX-r.left, t.clientY-r.top); ctx.stroke(); });
-        canvas.addEventListener('touchend',   () => { firmando = false; guardarFirma(); });
+        if (canvas) {
+            canvas.addEventListener('mousedown', e => { firmando = true; ctx.beginPath(); ctx.moveTo(e.offsetX, e.offsetY); });
+            canvas.addEventListener('mousemove', e => {
+                if (!firmando) return;
+                ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.strokeStyle = '#000';
+                ctx.lineTo(e.offsetX, e.offsetY); ctx.stroke();
+            });
+            canvas.addEventListener('mouseup', () => {
+                firmando = false;
+                firmaRealizada = true;
+                guardarFirma();
+                mostrarOk('err-firma', 'ok-firma');
+                document.getElementById('firma-box').classList.remove('border-red-400');
+                document.getElementById('firma-box').classList.add('border-green-400');
+            });
+            canvas.addEventListener('mouseleave', () => { firmando = false; });
+            canvas.addEventListener('touchstart', e => {
+                e.preventDefault(); firmando = true;
+                const t = e.touches[0]; const r = canvas.getBoundingClientRect();
+                ctx.beginPath(); ctx.moveTo(t.clientX - r.left, t.clientY - r.top);
+            });
+            canvas.addEventListener('touchmove', e => {
+                e.preventDefault(); if (!firmando) return;
+                const t = e.touches[0]; const r = canvas.getBoundingClientRect();
+                ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.strokeStyle = '#000';
+                ctx.lineTo(t.clientX - r.left, t.clientY - r.top); ctx.stroke();
+            });
+            canvas.addEventListener('touchend', () => {
+                firmando = false;
+                firmaRealizada = true;
+                guardarFirma();
+                mostrarOk('err-firma', 'ok-firma');
+                document.getElementById('firma-box').classList.remove('border-red-400');
+                document.getElementById('firma-box').classList.add('border-green-400');
+            });
+        }
 
         function guardarFirma() {
-            document.getElementById('firma_comprador').value = canvas.toDataURL('image/png');
+            if (canvas) document.getElementById('firma_comprador').value = canvas.toDataURL('image/png');
         }
+
         function limpiarFirma() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
             document.getElementById('firma_comprador').value = '';
+            firmaRealizada = false;
+            limpiarMensaje('err-firma', 'ok-firma');
+            document.getElementById('firma-box').classList.remove('border-green-400', 'border-red-400');
         }
     </script>
 

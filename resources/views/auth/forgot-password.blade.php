@@ -36,18 +36,24 @@
                 @csrf
 
                 <!-- Email -->
-                <div class="block">
-                    <label class="block text-sm font-medium text-gray-700">
-                        Correo electronico
-                    </label>
+<div class="block">
+    <label class="block text-sm font-medium text-gray-700">
+        Correo electronico
+    </label>
 
-                    <input id="email"
-                           class="block mt-1 w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                           type="email"
-                           name="email"
-                           value="{{ old('email') }}"
-                           required autofocus>
-                </div>
+    <input 
+        id="email"
+        class="block mt-1 w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        type="email"
+        name="email"
+        value="{{ old('email') }}"
+        required
+        autofocus
+        autocomplete="email"
+        oninput="this.value=this.value.replace(/\s/g,'')"
+        onkeydown="if(event.key===' ') event.preventDefault()"
+        onpaste="setTimeout(()=>{ this.value=this.value.replace(/\s/g,'') },0)">
+</div>
 
                 <!-- Bot?n -->
                 <div class="flex items-center justify-end mt-6">
