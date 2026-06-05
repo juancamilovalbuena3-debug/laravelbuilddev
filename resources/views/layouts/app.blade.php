@@ -2,11 +2,8 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
-        <meta name="mobile-web-app-capable" content="yes">
-        <meta name="apple-mobile-web-app-capable" content="yes">
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
         <title>{{ config('app.name', 'Laravel') }}</title>
 
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -17,47 +14,6 @@
         @livewireStyles
 
         <style>
-            /* ══════════════════════════════════════
-               BASE MÓVIL — aplica a todos los temas
-            ══════════════════════════════════════ */
-            *, *::before, *::after { box-sizing: border-box; }
-
-            @media (max-width: 768px) {
-                body { overflow-x: hidden; }
-
-                nav, header {
-                    padding-left: 12px !important;
-                    padding-right: 12px !important;
-                }
-
-                .max-w-7xl {
-                    padding-left: 12px !important;
-                    padding-right: 12px !important;
-                }
-
-                table {
-                    display: block;
-                    overflow-x: auto;
-                    -webkit-overflow-scrolling: touch;
-                    width: 100%;
-                }
-
-                aside {
-                    width: 100% !important;
-                    max-width: 100% !important;
-                }
-
-                input, select, textarea, button {
-                    font-size: 16px !important; /* evita zoom en iOS */
-                    max-width: 100% !important;
-                }
-
-                .px-4 { padding-left: 12px !important; padding-right: 12px !important; }
-                .py-6 { padding-top: 14px !important; padding-bottom: 14px !important; }
-                .sm\:px-6 { padding-left: 12px !important; padding-right: 12px !important; }
-                .lg\:px-8 { padding-left: 12px !important; padding-right: 12px !important; }
-            }
-
             /* ══════════════════════════════════════
                TEMA FUTURISTA (azul neón)
             ══════════════════════════════════════ */
@@ -184,13 +140,6 @@
             .tema-futurista ::-webkit-scrollbar { width: 5px; }
             .tema-futurista ::-webkit-scrollbar-track { background: #03070f; }
             .tema-futurista ::-webkit-scrollbar-thumb { background: rgba(0,180,255,.3); border-radius: 3px; }
-
-            @media (max-width: 768px) {
-                .tema-futurista .min-h-screen { background: #03070f !important; min-width: 0 !important; }
-                .tema-futurista th { font-size: 10px !important; padding: 8px 8px !important; letter-spacing: .08em !important; }
-                .tema-futurista td { padding: 8px 8px !important; font-size: 13px !important; }
-                .tema-futurista input, .tema-futurista select, .tema-futurista textarea { font-size: 16px !important; }
-            }
 
             /* ══════════════════════════════════════
                TEMA ROSA (futurista rosado)
@@ -319,13 +268,6 @@
             .tema-rosa ::-webkit-scrollbar-track { background: #0f0310; }
             .tema-rosa ::-webkit-scrollbar-thumb { background: rgba(255,100,200,.3); border-radius: 3px; }
 
-            @media (max-width: 768px) {
-                .tema-rosa .min-h-screen { background: #0f0310 !important; min-width: 0 !important; }
-                .tema-rosa th { font-size: 10px !important; padding: 8px 8px !important; letter-spacing: .08em !important; }
-                .tema-rosa td { padding: 8px 8px !important; font-size: 13px !important; }
-                .tema-rosa input, .tema-rosa select, .tema-rosa textarea { font-size: 16px !important; }
-            }
-
             /* ══════════════════════════════════════
                TEMA BLANCO (futurista claro)
             ══════════════════════════════════════ */
@@ -445,13 +387,6 @@
             .tema-blanco ::-webkit-scrollbar-track { background: #f0f4fa; }
             .tema-blanco ::-webkit-scrollbar-thumb { background: rgba(0,100,200,.2); border-radius: 3px; }
 
-            @media (max-width: 768px) {
-                .tema-blanco .min-h-screen { background: #f0f4fa !important; min-width: 0 !important; }
-                .tema-blanco th { font-size: 10px !important; padding: 8px 8px !important; letter-spacing: .08em !important; }
-                .tema-blanco td { padding: 8px 8px !important; font-size: 13px !important; }
-                .tema-blanco input, .tema-blanco select, .tema-blanco textarea { font-size: 16px !important; }
-            }
-
             /* ── TEMAS ORIGINALES ── */
             .tema-oscuro { background-color: #111827 !important; color: #f9fafb !important; }
             .tema-oscuro header { background-color: #1f2937 !important; }
@@ -462,11 +397,6 @@
             .tema-oscuro .border { border-color: #374151 !important; }
             .tema-oscuro .bg-gray-100 { background-color: #1f2937 !important; }
 
-            @media (max-width: 768px) {
-                .tema-oscuro .min-h-screen { min-width: 0 !important; }
-                .tema-oscuro input, .tema-oscuro select, .tema-oscuro textarea { font-size: 16px !important; }
-            }
-
             .tema-profesional { background-color: #1e3a5f !important; color: #f0f4f8 !important; }
             .tema-profesional header { background-color: #162d4a !important; }
             .tema-profesional .bg-white { background-color: #1e3a5f !important; color: #f0f4f8 !important; }
@@ -475,11 +405,6 @@
             .tema-profesional .text-gray-500 { color: #a0aec0 !important; }
             .tema-profesional .border { border-color: #2d5a8e !important; }
             .tema-profesional .bg-gray-100 { background-color: #162d4a !important; }
-
-            @media (max-width: 768px) {
-                .tema-profesional .min-h-screen { min-width: 0 !important; }
-                .tema-profesional input, .tema-profesional select, .tema-profesional textarea { font-size: 16px !important; }
-            }
         </style>
 
         <script>
