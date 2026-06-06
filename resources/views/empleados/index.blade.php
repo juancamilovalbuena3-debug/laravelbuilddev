@@ -5,33 +5,59 @@
         </h2>
     </x-slot>
 
-    <div class="py-12 bg-white min-h-screen">
+    <div class="py-6 sm:py-12 bg-white min-h-screen">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg flex">
+            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg flex flex-col sm:flex-row">
 
                 <!-- Sidebar -->
-                <aside class="w-64 bg-gray-100/90 border-r p-6">
-                    <h2 class="text-lg font-bold mb-4">Panel</h2>
-                    <ul class="space-y-2">
-                        <li><a href="{{ route('dashboard') }}" class="text-black font-semibold">Inicio</a></li>
-                        <li><a href="{{ route('empleados.index') }}" class="text-black font-semibold">Empleados</a></li>
-                        <li><a href="{{ route('carros') }}" class="text-black font-semibold">Carros</a></li>
-                        <li><a href="{{ route('motos') }}" class="text-black font-semibold">Motos</a></li>
-                        <li><a href="{{ route('vender') }}" class="text-black font-semibold">Vender Vehículo</a></li>
-                        <li><a href="{{ route('configuracion') }}" class="text-black font-semibold">Configuración</a></li>
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit" class="text-red-600 mt-2 font-semibold">Cerrar sesión</button>
-                        </form>
+                <aside
+                    x-data="{ open: false }"
+                    class="w-full sm:w-64 bg-gray-100/90 border-b sm:border-b-0 sm:border-r sm:p-6"
+                >
+                    <!-- Mobile toggle -->
+                    <div class="flex items-center justify-between p-4 sm:p-0 sm:block">
+                        <h2 class="text-lg font-bold sm:mb-4">Panel</h2>
+                        <button
+                            @click="open = !open"
+                            class="sm:hidden text-gray-600 focus:outline-none"
+                            aria-label="Toggle menu"
+                        >
+                            <svg x-show="!open" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                            </svg>
+                            <svg x-show="open" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Nav links -->
+                    <ul
+                        x-show="open || window.innerWidth >= 640"
+                        x-cloak
+                        class="space-y-2 px-4 pb-4 sm:p-0 sm:block"
+                    >
+                        <li><a href="{{ route('dashboard') }}" class="text-black font-semibold block py-1">Inicio</a></li>
+                        <li><a href="{{ route('empleados.index') }}" class="text-black font-semibold block py-1">Empleados</a></li>
+                        <li><a href="{{ route('carros') }}" class="text-black font-semibold block py-1">Carros</a></li>
+                        <li><a href="{{ route('motos') }}" class="text-black font-semibold block py-1">Motos</a></li>
+                        <li><a href="{{ route('vender') }}" class="text-black font-semibold block py-1">Vender Vehículo</a></li>
+                        <li><a href="{{ route('configuracion') }}" class="text-black font-semibold block py-1">Configuración</a></li>
+                        <li>
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="text-red-600 mt-2 font-semibold">Cerrar sesión</button>
+                            </form>
+                        </li>
                     </ul>
                 </aside>
 
                 <!-- Contenido principal -->
-                <main class="flex-1 p-6 min-w-0">
-                    <h1 class="text-2xl font-bold mb-6">Gestión de Empleados y Vehículos</h1>
+                <main class="flex-1 p-4 sm:p-6 min-w-0">
+                    <h1 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Gestión de Empleados y Vehículos</h1>
 
                     @if(session('error'))
-                        <div class="mb-6 flex items-center space-x-3 p-5 bg-yellow-50 border border-yellow-300 rounded-xl shadow text-yellow-800">
+                        <div class="mb-6 flex items-start sm:items-center space-x-3 p-4 sm:p-5 bg-yellow-50 border border-yellow-300 rounded-xl shadow text-yellow-800">
                             <span class="text-2xl">⚠️</span>
                             <div>
                                 <p class="font-semibold text-base">{{ session('error') }}</p>
@@ -48,26 +74,26 @@
 
                     <!-- Pestañas -->
                     <div x-data="{ tab: '{{ request('tab') === 'vehiculos' ? 'vehiculos' : 'empleados' }}' }">
-                        <div class="flex space-x-4 border-b mb-6">
+                        <div class="flex space-x-4 border-b mb-4 sm:mb-6">
                             <button
                                 @click="tab = 'empleados'"
                                 :class="tab === 'empleados' ? 'border-b-2 border-black text-black font-semibold' : 'text-gray-600 hover:text-black'"
-                                class="pb-2 transition">
+                                class="pb-2 transition text-sm sm:text-base">
                                 Empleados
                             </button>
                             <button
                                 @click="tab = 'vehiculos'"
                                 :class="tab === 'vehiculos' ? 'border-b-2 border-black text-black font-semibold' : 'text-gray-600 hover:text-black'"
-                                class="pb-2 transition">
+                                class="pb-2 transition text-sm sm:text-base">
                                 Vehículos
                             </button>
                         </div>
 
                         <!-- Tabla de empleados -->
                         <div x-show="tab === 'empleados'">
-                            <div class="flex justify-between items-center mb-4">
-                                <h2 class="text-xl font-semibold">Lista de Empleados</h2>
-                                <div class="space-x-2">
+                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-3 sm:gap-0">
+                                <h2 class="text-lg sm:text-xl font-semibold">Lista de Empleados</h2>
+                                <div class="flex space-x-2">
                                     <a href="{{ route('empleados.export.pdf', ['busqueda' => request('tab') === 'empleados' ? request('busqueda') : '']) }}"
                                        class="bg-white hover:bg-gray-200 text-black px-3 py-2 rounded shadow text-sm font-semibold border transition">
                                         Exportar PDF
@@ -80,29 +106,59 @@
                             </div>
 
                             <!-- Buscador empleados -->
-                            <div class="flex justify-between items-center mb-6">
-                                <form method="GET" action="{{ route('empleados.index') }}" class="flex space-x-2">
+                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-0">
+                                <form method="GET" action="{{ route('empleados.index') }}" class="flex flex-wrap gap-2">
                                     <input type="hidden" name="tab" value="empleados">
                                     <input type="text" name="busqueda" value="{{ request('tab') !== 'vehiculos' ? request('busqueda') : '' }}"
                                            placeholder="Buscar por nombre o correo"
-                                           class="border rounded px-3 py-2 w-64 focus:ring-black focus:border-black">
+                                           class="border rounded px-3 py-2 w-full sm:w-64 focus:ring-black focus:border-black text-sm">
                                     <button type="submit"
-                                            class="bg-white hover:bg-gray-200 text-black px-4 py-2 rounded shadow font-semibold border transition">
+                                            class="bg-white hover:bg-gray-200 text-black px-4 py-2 rounded shadow font-semibold border transition text-sm">
                                         Buscar
                                     </button>
                                     <a href="{{ route('empleados.index') }}"
-                                       class="bg-white hover:bg-gray-200 text-black px-4 py-2 rounded shadow font-semibold border transition">
+                                       class="bg-white hover:bg-gray-200 text-black px-4 py-2 rounded shadow font-semibold border transition text-sm">
                                         Limpiar
                                     </a>
                                 </form>
                                 <a href="{{ route('empleados.create') }}"
-                                   class="bg-white hover:bg-gray-200 text-black px-4 py-2 rounded shadow font-semibold border transition">
+                                   class="bg-white hover:bg-gray-200 text-black px-4 py-2 rounded shadow font-semibold border transition text-sm text-center">
                                     + Agregar Empleado
                                 </a>
                             </div>
 
                             @if($empleados->count() > 0)
-                                <div class="overflow-x-auto">
+                                <!-- Vista de tarjetas en móvil, tabla en desktop -->
+                                <div class="block sm:hidden space-y-3">
+                                    @foreach($empleados as $empleado)
+                                        <div class="border rounded-lg p-4 bg-white shadow-sm">
+                                            <div class="flex justify-between items-start mb-2">
+                                                <div>
+                                                    <p class="font-semibold text-gray-800">{{ $empleado->nombre }}</p>
+                                                    <p class="text-sm text-gray-500">{{ $empleado->puesto }}</p>
+                                                </div>
+                                                <span class="text-sm font-semibold text-gray-800">${{ number_format($empleado->salario, 2) }}</span>
+                                            </div>
+                                            <p class="text-sm text-gray-600 truncate mb-3">{{ $empleado->email }}</p>
+                                            <div class="flex space-x-2">
+                                                <a href="{{ route('empleados.edit', $empleado->id) }}"
+                                                   class="flex-1 text-center bg-white hover:bg-gray-200 text-black px-3 py-1.5 rounded shadow font-semibold border transition text-sm">
+                                                    Editar
+                                                </a>
+                                                <form action="{{ route('empleados.destroy', $empleado->id) }}" method="POST" class="flex-1">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" onclick="return confirm('¿Eliminar este empleado?')"
+                                                            class="w-full bg-white hover:bg-gray-200 text-black px-3 py-1.5 rounded shadow font-semibold border transition text-sm">
+                                                        Eliminar
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+
+                                <div class="hidden sm:block overflow-x-auto">
                                     <table class="table-fixed w-full border bg-white shadow rounded text-gray-800">
                                         <colgroup>
                                             <col class="w-1/5">
@@ -155,13 +211,13 @@
                             @else
                                 @if(request('busqueda') && request('tab') !== 'vehiculos')
                                     <div class="text-center py-12 text-gray-500">
-                                        <p class="text-xl">No se encontraron empleados con "<strong>{{ request('busqueda') }}</strong>".</p>
+                                        <p class="text-lg sm:text-xl">No se encontraron empleados con "<strong>{{ request('busqueda') }}</strong>".</p>
                                         <p class="text-sm mt-2">Intenta con otro nombre o correo.</p>
                                         <a href="{{ route('empleados.index') }}" class="inline-block mt-4 text-blue-600 underline text-sm">Limpiar búsqueda</a>
                                     </div>
                                 @else
                                     <div class="text-center py-12 text-gray-500">
-                                        <p class="text-xl">No hay empleados registrados aún.</p>
+                                        <p class="text-lg sm:text-xl">No hay empleados registrados aún.</p>
                                         <p class="text-sm mt-2">Haz clic en <strong>+ Agregar Empleado</strong> para comenzar.</p>
                                     </div>
                                 @endif
@@ -170,9 +226,9 @@
 
                         <!-- Tabla de vehículos -->
                         <div x-show="tab === 'vehiculos'">
-                            <div class="flex justify-between items-center mb-4">
-                                <h2 class="text-xl font-semibold">Vehículos Publicados</h2>
-                                <div class="space-x-2">
+                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-3 sm:gap-0">
+                                <h2 class="text-lg sm:text-xl font-semibold">Vehículos Publicados</h2>
+                                <div class="flex space-x-2">
                                     <a href="{{ route('vehiculos.export.pdf', ['busqueda' => request('busqueda'), 'tipo' => request('tipo')]) }}"
                                        class="bg-white hover:bg-gray-200 text-black px-3 py-2 rounded shadow text-sm font-semibold border transition">
                                         Exportar PDF
@@ -185,34 +241,76 @@
                             </div>
 
                             <!-- Buscador vehículos -->
-                            <div class="flex justify-between items-center mb-6">
-                                <form method="GET" action="{{ route('empleados.index') }}" class="flex space-x-2">
+                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-0">
+                                <form method="GET" action="{{ route('empleados.index') }}" class="flex flex-wrap gap-2">
                                     <input type="hidden" name="tab" value="vehiculos">
                                     <input type="text" name="busqueda" value="{{ request('tab') === 'vehiculos' ? request('busqueda') : '' }}"
                                            placeholder="Buscar por marca o modelo"
-                                           class="border rounded px-3 py-2 w-64 focus:ring-black focus:border-black">
-                                    <select name="tipo" class="border rounded px-3 py-2 focus:ring-black focus:border-black">
+                                           class="border rounded px-3 py-2 w-full sm:w-64 focus:ring-black focus:border-black text-sm">
+                                    <select name="tipo" class="border rounded px-3 py-2 focus:ring-black focus:border-black text-sm">
                                         <option value="">Todos los tipos</option>
                                         <option value="carro" {{ request('tipo') == 'carro' ? 'selected' : '' }}>Carros</option>
                                         <option value="moto" {{ request('tipo') == 'moto' ? 'selected' : '' }}>Motos</option>
                                     </select>
                                     <button type="submit"
-                                            class="bg-white hover:bg-gray-200 text-black px-4 py-2 rounded shadow font-semibold border transition">
+                                            class="bg-white hover:bg-gray-200 text-black px-4 py-2 rounded shadow font-semibold border transition text-sm">
                                         Buscar
                                     </button>
                                     <a href="{{ route('empleados.index', ['tab' => 'vehiculos']) }}"
-                                       class="bg-white hover:bg-gray-200 text-black px-4 py-2 rounded shadow font-semibold border transition">
+                                       class="bg-white hover:bg-gray-200 text-black px-4 py-2 rounded shadow font-semibold border transition text-sm">
                                         Limpiar
                                     </a>
                                 </form>
                                 <a href="{{ route('vehiculos.create') }}"
-                                   class="bg-white hover:bg-gray-200 text-black px-4 py-2 rounded shadow font-semibold border transition">
+                                   class="bg-white hover:bg-gray-200 text-black px-4 py-2 rounded shadow font-semibold border transition text-sm text-center">
                                     + Agregar Vehículo
                                 </a>
                             </div>
 
                             @if($vehiculos->count() > 0)
-                                <div class="overflow-x-auto">
+                                <!-- Vista de tarjetas en móvil, tabla en desktop -->
+                                <div class="block sm:hidden space-y-3">
+                                    @foreach($vehiculos as $vehiculo)
+                                        <div class="border rounded-lg p-4 bg-white shadow-sm">
+                                            <div class="flex items-start space-x-3 mb-2">
+                                                @if($vehiculo->imagen)
+                                                    <img src="{{ asset('images/'.$vehiculo->imagen) }}" alt="Imagen" class="w-16 h-12 object-cover rounded flex-shrink-0">
+                                                @else
+                                                    <div class="w-16 h-12 bg-gray-100 rounded flex items-center justify-center flex-shrink-0">
+                                                        <span class="text-gray-400 text-xs">Sin img</span>
+                                                    </div>
+                                                @endif
+                                                <div class="min-w-0">
+                                                    <div class="flex items-center space-x-2 mb-0.5">
+                                                        <span class="text-xs font-semibold uppercase text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">{{ $vehiculo->tipo }}</span>
+                                                        <span class="text-xs text-gray-400">#{{ $vehiculo->id }}</span>
+                                                    </div>
+                                                    <p class="font-semibold text-gray-800 truncate">{{ $vehiculo->marca }} · {{ $vehiculo->modelo }}</p>
+                                                    <p class="text-sm font-semibold text-gray-700">${{ number_format($vehiculo->precio, 2) }}</p>
+                                                </div>
+                                            </div>
+                                            @if($vehiculo->descripcion)
+                                                <p class="text-sm text-gray-500 truncate mb-3">{{ $vehiculo->descripcion }}</p>
+                                            @endif
+                                            <div class="flex space-x-2">
+                                                <a href="{{ route('vehiculos.edit', $vehiculo->id) }}"
+                                                   class="flex-1 text-center bg-white hover:bg-gray-200 text-black px-3 py-1.5 rounded shadow font-semibold border transition text-sm">
+                                                    Editar
+                                                </a>
+                                                <form action="{{ route('vehiculos.destroy', $vehiculo->id) }}" method="POST" class="flex-1">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" onclick="return confirm('¿Eliminar este vehículo?')"
+                                                            class="w-full bg-white hover:bg-gray-200 text-black px-3 py-1.5 rounded shadow font-semibold border transition text-sm">
+                                                        Eliminar
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+
+                                <div class="hidden sm:block overflow-x-auto">
                                     <table class="table-fixed w-full border bg-white shadow rounded text-gray-800">
                                         <colgroup>
                                             <col class="w-12">
@@ -277,7 +375,7 @@
                             @else
                                 @if(request('busqueda') || request('tipo'))
                                     <div class="text-center py-12 text-gray-500">
-                                        <p class="text-xl">🔍 No se encontraron vehículos
+                                        <p class="text-lg sm:text-xl">🔍 No se encontraron vehículos
                                             @if(request('busqueda')) con "<strong>{{ request('busqueda') }}</strong>"@endif
                                             @if(request('tipo')) de tipo "<strong>{{ request('tipo') }}</strong>"@endif.
                                         </p>
@@ -286,7 +384,7 @@
                                     </div>
                                 @else
                                     <div class="text-center py-12 text-gray-500">
-                                        <p class="text-xl">🚗 No hay vehículos publicados aún.</p>
+                                        <p class="text-lg sm:text-xl">🚗 No hay vehículos publicados aún.</p>
                                         <p class="text-sm mt-2">Haz clic en <strong>+ Agregar Vehículo</strong> para comenzar.</p>
                                     </div>
                                 @endif
