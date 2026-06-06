@@ -7,21 +7,17 @@
 
     <div class="py-6 sm:py-12 bg-white min-h-screen">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+
+            <!-- Wrapper: columna en móvil, fila en desktop -->
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg flex flex-col sm:flex-row">
 
-                <!-- Sidebar -->
-                <aside
-                    x-data="{ open: false }"
-                    class="w-full sm:w-64 bg-gray-100/90 border-b sm:border-b-0 sm:border-r sm:p-6"
-                >
-                    <!-- Mobile toggle -->
-                    <div class="flex items-center justify-between p-4 sm:p-0 sm:block">
-                        <h2 class="text-lg font-bold sm:mb-4">Panel</h2>
-                        <button
-                            @click="open = !open"
-                            class="sm:hidden text-gray-600 focus:outline-none"
-                            aria-label="Toggle menu"
-                        >
+                <!-- ===== SIDEBAR ===== -->
+                <aside x-data="{ open: false }" class="bg-gray-100/90 sm:w-64 sm:border-r sm:min-h-full">
+
+                    <!-- Barra superior móvil: título + botón hamburguesa -->
+                    <div class="flex items-center justify-between px-4 py-3 border-b sm:hidden">
+                        <h2 class="text-lg font-bold">Panel</h2>
+                        <button @click="open = !open" class="text-gray-600 focus:outline-none" aria-label="Toggle menú">
                             <svg x-show="!open" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                             </svg>
@@ -31,28 +27,50 @@
                         </button>
                     </div>
 
-                    <!-- Nav links -->
-                    <ul
-                        x-show="open || window.innerWidth >= 640"
-                        x-cloak
-                        class="space-y-2 px-4 pb-4 sm:p-0 sm:block"
+                    <!-- Menú: oculto en móvil hasta abrir, siempre visible en desktop -->
+                    <div
+                        class="sm:block sm:p-6"
+                        x-show="open"
+                        x-transition
                     >
-                        <li><a href="{{ route('dashboard') }}" class="text-black font-semibold block py-1">Inicio</a></li>
-                        <li><a href="{{ route('empleados.index') }}" class="text-black font-semibold block py-1">Empleados</a></li>
-                        <li><a href="{{ route('carros') }}" class="text-black font-semibold block py-1">Carros</a></li>
-                        <li><a href="{{ route('motos') }}" class="text-black font-semibold block py-1">Motos</a></li>
-                        <li><a href="{{ route('vender') }}" class="text-black font-semibold block py-1">Vender Vehículo</a></li>
-                        <li><a href="{{ route('configuracion') }}" class="text-black font-semibold block py-1">Configuración</a></li>
-                        <li>
+                        <!-- Título desktop -->
+                        <h2 class="hidden sm:block text-lg font-bold mb-4">Panel</h2>
+
+                        <ul class="space-y-1 px-4 py-3 sm:p-0">
+                            <li><a href="{{ route('dashboard') }}" class="text-black font-semibold block py-2 sm:py-1">Inicio</a></li>
+                            <li><a href="{{ route('empleados.index') }}" class="text-black font-semibold block py-2 sm:py-1">Empleados</a></li>
+                            <li><a href="{{ route('carros') }}" class="text-black font-semibold block py-2 sm:py-1">Carros</a></li>
+                            <li><a href="{{ route('motos') }}" class="text-black font-semibold block py-2 sm:py-1">Motos</a></li>
+                            <li><a href="{{ route('vender') }}" class="text-black font-semibold block py-2 sm:py-1">Vender Vehículo</a></li>
+                            <li><a href="{{ route('configuracion') }}" class="text-black font-semibold block py-2 sm:py-1">Configuración</a></li>
+                            <li>
+                                <form method="POST" action="{{ route('logout') }}">
+                                    @csrf
+                                    <button type="submit" class="text-red-600 mt-1 font-semibold py-2 sm:py-1">Cerrar sesión</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- En desktop siempre mostrar el menú (Alpine oculta en móvil por defecto) -->
+                    <div class="hidden sm:block sm:p-6">
+                        <h2 class="text-lg font-bold mb-4">Panel</h2>
+                        <ul class="space-y-2">
+                            <li><a href="{{ route('dashboard') }}" class="text-black font-semibold">Inicio</a></li>
+                            <li><a href="{{ route('empleados.index') }}" class="text-black font-semibold">Empleados</a></li>
+                            <li><a href="{{ route('carros') }}" class="text-black font-semibold">Carros</a></li>
+                            <li><a href="{{ route('motos') }}" class="text-black font-semibold">Motos</a></li>
+                            <li><a href="{{ route('vender') }}" class="text-black font-semibold">Vender Vehículo</a></li>
+                            <li><a href="{{ route('configuracion') }}" class="text-black font-semibold">Configuración</a></li>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
                                 <button type="submit" class="text-red-600 mt-2 font-semibold">Cerrar sesión</button>
                             </form>
-                        </li>
-                    </ul>
+                        </ul>
+                    </div>
                 </aside>
 
-                <!-- Contenido principal -->
+                <!-- ===== CONTENIDO PRINCIPAL ===== -->
                 <main class="flex-1 p-4 sm:p-6 min-w-0">
                     <h1 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Gestión de Empleados y Vehículos</h1>
 
@@ -89,9 +107,9 @@
                             </button>
                         </div>
 
-                        <!-- Tabla de empleados -->
+                        <!-- ===== TAB EMPLEADOS ===== -->
                         <div x-show="tab === 'empleados'">
-                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-3 sm:gap-0">
+                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-3">
                                 <h2 class="text-lg sm:text-xl font-semibold">Lista de Empleados</h2>
                                 <div class="flex space-x-2">
                                     <a href="{{ route('empleados.export.pdf', ['busqueda' => request('tab') === 'empleados' ? request('busqueda') : '']) }}"
@@ -106,7 +124,7 @@
                             </div>
 
                             <!-- Buscador empleados -->
-                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-0">
+                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-3">
                                 <form method="GET" action="{{ route('empleados.index') }}" class="flex flex-wrap gap-2">
                                     <input type="hidden" name="tab" value="empleados">
                                     <input type="text" name="busqueda" value="{{ request('tab') !== 'vehiculos' ? request('busqueda') : '' }}"
@@ -122,17 +140,17 @@
                                     </a>
                                 </form>
                                 <a href="{{ route('empleados.create') }}"
-                                   class="bg-white hover:bg-gray-200 text-black px-4 py-2 rounded shadow font-semibold border transition text-sm text-center">
+                                   class="bg-white hover:bg-gray-200 text-black px-4 py-2 rounded shadow font-semibold border transition text-sm text-center sm:text-left">
                                     + Agregar Empleado
                                 </a>
                             </div>
 
                             @if($empleados->count() > 0)
-                                <!-- Vista de tarjetas en móvil, tabla en desktop -->
+                                <!-- Tarjetas en móvil -->
                                 <div class="block sm:hidden space-y-3">
                                     @foreach($empleados as $empleado)
                                         <div class="border rounded-lg p-4 bg-white shadow-sm">
-                                            <div class="flex justify-between items-start mb-2">
+                                            <div class="flex justify-between items-start mb-1">
                                                 <div>
                                                     <p class="font-semibold text-gray-800">{{ $empleado->nombre }}</p>
                                                     <p class="text-sm text-gray-500">{{ $empleado->puesto }}</p>
@@ -142,14 +160,14 @@
                                             <p class="text-sm text-gray-600 truncate mb-3">{{ $empleado->email }}</p>
                                             <div class="flex space-x-2">
                                                 <a href="{{ route('empleados.edit', $empleado->id) }}"
-                                                   class="flex-1 text-center bg-white hover:bg-gray-200 text-black px-3 py-1.5 rounded shadow font-semibold border transition text-sm">
+                                                   class="flex-1 text-center bg-white hover:bg-gray-200 text-black px-3 py-2 rounded shadow font-semibold border transition text-sm">
                                                     Editar
                                                 </a>
                                                 <form action="{{ route('empleados.destroy', $empleado->id) }}" method="POST" class="flex-1">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" onclick="return confirm('¿Eliminar este empleado?')"
-                                                            class="w-full bg-white hover:bg-gray-200 text-black px-3 py-1.5 rounded shadow font-semibold border transition text-sm">
+                                                            class="w-full bg-white hover:bg-gray-200 text-black px-3 py-2 rounded shadow font-semibold border transition text-sm">
                                                         Eliminar
                                                     </button>
                                                 </form>
@@ -158,6 +176,7 @@
                                     @endforeach
                                 </div>
 
+                                <!-- Tabla en desktop -->
                                 <div class="hidden sm:block overflow-x-auto">
                                     <table class="table-fixed w-full border bg-white shadow rounded text-gray-800">
                                         <colgroup>
@@ -182,8 +201,7 @@
                                                     <td class="border px-4 py-2 truncate">{{ $empleado->nombre }}</td>
                                                     <td class="border px-4 py-2 truncate">{{ $empleado->puesto }}</td>
                                                     <td class="border px-4 py-2">${{ number_format($empleado->salario, 2) }}</td>
-                                                    <td class="border px-4 py-2 truncate max-w-0"
-                                                        title="{{ $empleado->email }}">
+                                                    <td class="border px-4 py-2 truncate max-w-0" title="{{ $empleado->email }}">
                                                         {{ $empleado->email }}
                                                     </td>
                                                     <td class="border px-4 py-2">
@@ -224,9 +242,9 @@
                             @endif
                         </div>
 
-                        <!-- Tabla de vehículos -->
+                        <!-- ===== TAB VEHÍCULOS ===== -->
                         <div x-show="tab === 'vehiculos'">
-                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-3 sm:gap-0">
+                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-3">
                                 <h2 class="text-lg sm:text-xl font-semibold">Vehículos Publicados</h2>
                                 <div class="flex space-x-2">
                                     <a href="{{ route('vehiculos.export.pdf', ['busqueda' => request('busqueda'), 'tipo' => request('tipo')]) }}"
@@ -241,7 +259,7 @@
                             </div>
 
                             <!-- Buscador vehículos -->
-                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-0">
+                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-3">
                                 <form method="GET" action="{{ route('empleados.index') }}" class="flex flex-wrap gap-2">
                                     <input type="hidden" name="tab" value="vehiculos">
                                     <input type="text" name="busqueda" value="{{ request('tab') === 'vehiculos' ? request('busqueda') : '' }}"
@@ -262,13 +280,13 @@
                                     </a>
                                 </form>
                                 <a href="{{ route('vehiculos.create') }}"
-                                   class="bg-white hover:bg-gray-200 text-black px-4 py-2 rounded shadow font-semibold border transition text-sm text-center">
+                                   class="bg-white hover:bg-gray-200 text-black px-4 py-2 rounded shadow font-semibold border transition text-sm text-center sm:text-left">
                                     + Agregar Vehículo
                                 </a>
                             </div>
 
                             @if($vehiculos->count() > 0)
-                                <!-- Vista de tarjetas en móvil, tabla en desktop -->
+                                <!-- Tarjetas en móvil -->
                                 <div class="block sm:hidden space-y-3">
                                     @foreach($vehiculos as $vehiculo)
                                         <div class="border rounded-lg p-4 bg-white shadow-sm">
@@ -294,14 +312,14 @@
                                             @endif
                                             <div class="flex space-x-2">
                                                 <a href="{{ route('vehiculos.edit', $vehiculo->id) }}"
-                                                   class="flex-1 text-center bg-white hover:bg-gray-200 text-black px-3 py-1.5 rounded shadow font-semibold border transition text-sm">
+                                                   class="flex-1 text-center bg-white hover:bg-gray-200 text-black px-3 py-2 rounded shadow font-semibold border transition text-sm">
                                                     Editar
                                                 </a>
                                                 <form action="{{ route('vehiculos.destroy', $vehiculo->id) }}" method="POST" class="flex-1">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" onclick="return confirm('¿Eliminar este vehículo?')"
-                                                            class="w-full bg-white hover:bg-gray-200 text-black px-3 py-1.5 rounded shadow font-semibold border transition text-sm">
+                                                            class="w-full bg-white hover:bg-gray-200 text-black px-3 py-2 rounded shadow font-semibold border transition text-sm">
                                                         Eliminar
                                                     </button>
                                                 </form>
@@ -310,6 +328,7 @@
                                     @endforeach
                                 </div>
 
+                                <!-- Tabla en desktop -->
                                 <div class="hidden sm:block overflow-x-auto">
                                     <table class="table-fixed w-full border bg-white shadow rounded text-gray-800">
                                         <colgroup>
