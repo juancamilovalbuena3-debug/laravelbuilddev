@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-2xl text-gray-800 tracking-tight">Comprar Vehículo</h2>
+        <h2 class="font-semibold text-xl md:text-2xl text-gray-800 tracking-tight">Comprar Vehículo</h2>
     </x-slot>
 
     @php
@@ -8,72 +8,75 @@
         $stockMaximo = $stockMaximo ?? 50;
     @endphp
 
-    <div class="max-w-4xl mx-auto p-6 mt-6 space-y-8">
+    <div class="max-w-4xl mx-auto px-3 sm:px-6 py-4 md:py-6 space-y-6 md:space-y-8">
 
-        {{-- ALERTA DE STOCK --}}
+        <!-- ALERTA DE STOCK -->
         @if($disponibles <= 0)
-            <div class="p-4 rounded-xl border-l-4 border-red-500 bg-red-50 text-red-800 text-sm font-semibold shadow-sm flex items-center gap-2">
+            <div class="p-4 rounded-xl border-l-4 border-red-500 bg-red-50 text-red-800 text-sm font-semibold shadow-sm flex items-start gap-2">
                 🚫 <span>Este vehículo ya no está disponible. Se agotaron las {{ $stockMaximo }} unidades.</span>
             </div>
         @elseif($disponibles <= 10)
-            <div class="p-4 rounded-xl border-l-4 border-yellow-400 bg-yellow-50 text-yellow-800 text-sm font-medium shadow-sm flex items-center gap-2">
+            <div class="p-4 rounded-xl border-l-4 border-yellow-400 bg-yellow-50 text-yellow-800 text-sm font-medium shadow-sm flex items-start gap-2">
                 ⚠️ <span>Solo quedan <strong>{{ $disponibles }}</strong> unidad(es) disponibles. ¡No pierdas tu oportunidad!</span>
             </div>
         @endif
 
         <!-- Sección Declaración Jurada -->
-        <div class="bg-white rounded-xl shadow-lg p-8 border border-gray-200 transition-all hover:shadow-xl" style="font-family: 'Times New Roman', serif;">
-            <div class="text-center mb-6">
-                <p class="text-sm text-gray-500"><span id="fecha-hoy"></span></p>
-                <h2 class="text-xl font-bold uppercase mt-2 text-gray-900">Declaración Jurada de Medio de Pago</h2>
-                <p class="text-sm mt-1 text-gray-700">Señores: <strong>SUPERINTENDENCIA NACIONAL DE LOS REGISTROS PÚBLICOS</strong></p>
-                <p class="text-sm text-gray-700">Registro de Propiedad Vehicular</p>
+        <div class="bg-white rounded-xl shadow-lg p-5 md:p-8 border border-gray-200 transition-all hover:shadow-xl" style="font-family: 'Times New Roman', serif;">
+            <div class="text-center mb-4 md:mb-6">
+                <p class="text-xs md:text-sm text-gray-500"><span id="fecha-hoy"></span></p>
+                <h2 class="text-base md:text-xl font-bold uppercase mt-2 text-gray-900">Declaración Jurada de Medio de Pago</h2>
+                <p class="text-xs md:text-sm mt-1 text-gray-700">Señores: <strong>SUPERINTENDENCIA NACIONAL DE LOS REGISTROS PÚBLICOS</strong></p>
+                <p class="text-xs md:text-sm text-gray-700">Registro de Propiedad Vehicular</p>
             </div>
-            <p class="text-sm mb-4 text-gray-800">
+            <p class="text-xs md:text-sm mb-4 text-gray-800">
                 La empresa <strong>Motrix</strong>, en su calidad de empresa <strong>Vendedora</strong>,
                 y el comprador abajo indicado, declaramos la compra del vehículo:
             </p>
-            <div class="overflow-hidden rounded-lg border border-black mb-4">
-                <table class="w-full text-sm">
+
+            <!-- Tabla declaración — scroll horizontal en móvil -->
+            <div class="overflow-x-auto rounded-lg border border-black mb-4">
+                <table class="w-full text-xs md:text-sm" style="min-width: 480px;">
                     <thead>
                         <tr class="bg-gray-100 border-b border-black">
-                            <th class="border-r border-black px-4 py-3 text-left">Vehículo</th>
-                            <th class="border-r border-black px-4 py-3 text-left">Cantidad</th>
-                            <th class="border-r border-black px-4 py-3 text-left">Fecha</th>
-                            <th class="px-4 py-3 text-left">Importe Total</th>
+                            <th class="border-r border-black px-3 py-2 md:px-4 md:py-3 text-left">Vehículo</th>
+                            <th class="border-r border-black px-3 py-2 md:px-4 md:py-3 text-left">Cantidad</th>
+                            <th class="border-r border-black px-3 py-2 md:px-4 md:py-3 text-left">Fecha</th>
+                            <th class="px-3 py-2 md:px-4 md:py-3 text-left">Importe Total</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td class="border-r border-black px-4 py-3 font-medium">{{ $vehiculo['nombre'] }}</td>
-                            <td class="border-r border-black px-4 py-3" id="resumen-cantidad-doc">1</td>
-                            <td class="border-r border-black px-4 py-3" id="fecha-tabla"></td>
-                            <td class="px-4 py-3 font-bold" id="resumen-total-doc">${{ number_format($vehiculo['precio']) }}</td>
+                            <td class="border-r border-black px-3 py-2 md:px-4 md:py-3 font-medium">{{ $vehiculo['nombre'] }}</td>
+                            <td class="border-r border-black px-3 py-2 md:px-4 md:py-3" id="resumen-cantidad-doc">1</td>
+                            <td class="border-r border-black px-3 py-2 md:px-4 md:py-3" id="fecha-tabla"></td>
+                            <td class="px-3 py-2 md:px-4 md:py-3 font-bold" id="resumen-total-doc">${{ number_format($vehiculo['precio']) }}</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-            <p class="text-sm font-bold uppercase mb-1 text-gray-900">Forma de Cancelación:</p>
-            <p class="text-sm mb-6 text-gray-800">La empresa compradora efectuará la cancelación mediante el siguiente medio de pago indicado abajo.</p>
 
-            <div class="flex flex-wrap gap-4 mt-4">
+            <p class="text-xs md:text-sm font-bold uppercase mb-1 text-gray-900">Forma de Cancelación:</p>
+            <p class="text-xs md:text-sm mb-4 md:mb-6 text-gray-800">La empresa compradora efectuará la cancelación mediante el siguiente medio de pago indicado abajo.</p>
+
+            <div class="flex flex-wrap gap-3">
                 <button type="button" onclick="descargarPDF()"
-                        class="bg-white hover:bg-gray-50 text-gray-800 font-semibold px-6 py-2.5 rounded-lg shadow-sm border border-gray-300 transition-all text-sm flex items-center gap-2 hover:shadow-md">
+                        class="bg-white hover:bg-gray-50 text-gray-800 font-semibold px-4 py-2 rounded-lg shadow-sm border border-gray-300 transition-all text-xs md:text-sm flex items-center gap-2 hover:shadow-md">
                     📄 Descargar PDF
                 </button>
                 <button type="button" onclick="descargarCSV()"
-                        class="bg-white hover:bg-gray-50 text-gray-800 font-semibold px-6 py-2.5 rounded-lg shadow-sm border border-gray-300 transition-all text-sm flex items-center gap-2 hover:shadow-md">
+                        class="bg-white hover:bg-gray-50 text-gray-800 font-semibold px-4 py-2 rounded-lg shadow-sm border border-gray-300 transition-all text-xs md:text-sm flex items-center gap-2 hover:shadow-md">
                     📊 Descargar CSV
                 </button>
             </div>
         </div>
 
         <!-- Formulario de Compra -->
-        <div class="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
-            <h3 class="text-xl font-bold mb-6 text-gray-800 border-b pb-3">📋 Datos de la Compra</h3>
+        <div class="bg-white rounded-xl shadow-lg p-5 md:p-8 border border-gray-200">
+            <h3 class="text-lg md:text-xl font-bold mb-5 md:mb-6 text-gray-800 border-b pb-3">📋 Datos de la Compra</h3>
 
             @if($errors->any())
-                <div class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-r-lg text-sm shadow-sm">
+                <div class="mb-5 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-r-lg text-xs md:text-sm shadow-sm">
                     <ul class="list-disc pl-4 space-y-1">
                         @foreach($errors->all() as $error)
                             <li>{{ $error }}</li>
@@ -82,14 +85,14 @@
                 </div>
             @endif
 
-            {{-- Si está agotado mostrar mensaje en lugar del formulario --}}
             @if($disponibles <= 0)
+                <!-- Agotado -->
                 <div class="text-center py-10">
-                    <div class="text-6xl mb-4">🚫</div>
-                    <h3 class="text-xl font-bold text-red-700 mb-2">Vehículo agotado</h3>
-                    <p class="text-gray-600 mb-6">No quedan unidades disponibles de <strong>{{ $vehiculo['nombre'] }}</strong>.</p>
+                    <div class="text-5xl md:text-6xl mb-4">🚫</div>
+                    <h3 class="text-lg md:text-xl font-bold text-red-700 mb-2">Vehículo agotado</h3>
+                    <p class="text-gray-600 text-sm md:text-base mb-6">No quedan unidades disponibles de <strong>{{ $vehiculo['nombre'] }}</strong>.</p>
                     <a href="{{ $tipo === 'moto' ? route('motos') : route('carros') }}"
-                       class="bg-black text-white font-semibold px-8 py-3 rounded-xl shadow hover:bg-gray-800 transition-colors">
+                       class="bg-black text-white font-semibold px-6 py-3 rounded-xl shadow hover:bg-gray-800 transition-colors text-sm md:text-base">
                         ← Ver otros vehículos
                     </a>
                 </div>
@@ -99,51 +102,50 @@
                   action="{{ $tipo === 'moto' ? route('motos.comprar', $vehiculo['id']) : route('carros.comprar', $vehiculo['id']) }}">
                 @csrf
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
 
                     <!-- Nombre -->
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Nombre completo</label>
+                        <label class="block text-xs md:text-sm font-semibold text-gray-700 mb-1">Nombre completo</label>
                         <input type="text" name="nombre_comprador" id="inp_nombre" required
                                value="{{ auth()->user()->name }}"
-                               class="w-full border border-gray-300 bg-gray-50 rounded-lg px-4 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm" />
+                               class="w-full border border-gray-300 bg-gray-50 rounded-lg px-3 py-2.5 md:px-4 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm text-sm" />
                         <p class="text-red-500 text-xs mt-1 hidden" id="err-nombre">⚠ Ingresa tu nombre completo (solo letras).</p>
                         <p class="text-green-600 text-xs mt-1 hidden" id="ok-nombre">✔ Nombre válido.</p>
                     </div>
 
                     <!-- Documento -->
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Número de documento (CC/NIT)</label>
+                        <label class="block text-xs md:text-sm font-semibold text-gray-700 mb-1">Número de documento (CC/NIT)</label>
                         <input type="text" name="documento" id="inp_doc" required placeholder="Ej: 1234567890"
-                               class="w-full border border-gray-300 bg-gray-50 rounded-lg px-4 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm" />
+                               class="w-full border border-gray-300 bg-gray-50 rounded-lg px-3 py-2.5 md:px-4 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm text-sm" />
                         <p class="text-red-500 text-xs mt-1 hidden" id="err-doc">⚠ Ingresa un número de documento válido (6 a 15 dígitos).</p>
                         <p class="text-green-600 text-xs mt-1 hidden" id="ok-doc">✔ Documento válido.</p>
                     </div>
 
-                    <!-- ── FECHA DE NACIMIENTO (NUEVO) ────────────────────── -->
+                    <!-- Fecha de Nacimiento -->
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Fecha de nacimiento</label>
+                        <label class="block text-xs md:text-sm font-semibold text-gray-700 mb-1">Fecha de nacimiento</label>
                         <input type="date" name="fecha_nacimiento" id="inp_nacimiento" required
-                               class="w-full border border-gray-300 bg-gray-50 rounded-lg px-4 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm" />
+                               class="w-full border border-gray-300 bg-gray-50 rounded-lg px-3 py-2.5 md:px-4 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm text-sm" />
                         <p class="text-red-500 text-xs mt-1 hidden" id="err-nacimiento">⚠ Debes ser mayor de 18 años para realizar una compra.</p>
                         <p class="text-green-600 text-xs mt-1 hidden" id="ok-nacimiento">✔ Edad verificada.</p>
                     </div>
-                    <!-- ── FIN FECHA DE NACIMIENTO ───────────────────────── -->
 
                     <!-- Cantidad -->
-                    <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-xl border border-blue-200 shadow-sm">
-                        <label class="block text-sm font-semibold text-gray-700 mb-3">🔢 Cantidad de unidades</label>
-                        <div class="flex items-center gap-4">
+                    <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-3 md:p-4 rounded-xl border border-blue-200 shadow-sm">
+                        <label class="block text-xs md:text-sm font-semibold text-gray-700 mb-3">🔢 Cantidad de unidades</label>
+                        <div class="flex items-center gap-3 md:gap-4">
                             <button type="button" onclick="cambiarCantidad(-1)"
-                                    class="w-10 h-10 rounded-full bg-white border-2 border-blue-300 text-blue-700 font-bold text-xl flex items-center justify-center hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-sm select-none">
+                                    class="w-9 h-9 md:w-10 md:h-10 rounded-full bg-white border-2 border-blue-300 text-blue-700 font-bold text-xl flex items-center justify-center hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-sm select-none">
                                 −
                             </button>
                             <input type="number" name="cantidad" id="inp_cantidad"
                                    value="1" min="1" max="{{ $disponibles }}"
                                    oninput="actualizarResumen()"
-                                   class="w-20 text-center text-xl font-bold border-2 border-blue-300 rounded-xl px-2 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white shadow-sm" />
+                                   class="w-16 md:w-20 text-center text-lg md:text-xl font-bold border-2 border-blue-300 rounded-xl px-1 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white shadow-sm" />
                             <button type="button" onclick="cambiarCantidad(1)"
-                                    class="w-10 h-10 rounded-full bg-white border-2 border-blue-300 text-blue-700 font-bold text-xl flex items-center justify-center hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-sm select-none">
+                                    class="w-9 h-9 md:w-10 md:h-10 rounded-full bg-white border-2 border-blue-300 text-blue-700 font-bold text-xl flex items-center justify-center hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-sm select-none">
                                 +
                             </button>
                         </div>
@@ -155,8 +157,8 @@
 
                     <!-- Color -->
                     <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Color deseado</label>
-                        <div class="flex flex-wrap gap-3 mb-2">
+                        <label class="block text-xs md:text-sm font-semibold text-gray-700 mb-2">Color deseado</label>
+                        <div class="flex flex-wrap gap-2 md:gap-3 mb-2">
                             <button type="button" onclick="seleccionarColor('Blanco', this)" class="color-swatch w-8 h-8 rounded-full border border-gray-300 shadow-sm bg-white transition-all hover:scale-110 focus:outline-none" title="Blanco"></button>
                             <button type="button" onclick="seleccionarColor('Negro', this)" class="color-swatch w-8 h-8 rounded-full border border-gray-400 shadow-sm bg-black transition-all hover:scale-110 focus:outline-none" title="Negro"></button>
                             <button type="button" onclick="seleccionarColor('Gris', this)" class="color-swatch w-8 h-8 rounded-full border border-gray-400 shadow-sm bg-gray-400 transition-all hover:scale-110 focus:outline-none" title="Gris"></button>
@@ -165,8 +167,8 @@
                             <button type="button" onclick="seleccionarColor('Plata', this)" class="color-swatch w-8 h-8 rounded-full border border-gray-400 shadow-sm bg-slate-300 transition-all hover:scale-110 focus:outline-none" title="Plata"></button>
                             <button type="button" onclick="seleccionarColor('Verde', this)" class="color-swatch w-8 h-8 rounded-full border border-gray-400 shadow-sm bg-green-600 transition-all hover:scale-110 focus:outline-none" title="Verde"></button>
                         </div>
-                        <select name="color" id="inp_color" required class="w-full border border-gray-300 bg-white rounded-lg px-4 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm shadow-sm transition-colors pointer-events-none text-gray-600">
-                            <option value="">Seleccione un color (usa los círculos arriba)</option>
+                        <select name="color" id="inp_color" required class="w-full border border-gray-300 bg-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs md:text-sm shadow-sm pointer-events-none text-gray-600">
+                            <option value="">Seleccione un color (usa los círculos)</option>
                             <option value="Blanco">⬜ Blanco</option>
                             <option value="Negro">⬛ Negro</option>
                             <option value="Gris">🩶 Gris</option>
@@ -181,9 +183,9 @@
 
                     <!-- Método de pago -->
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Método de pago</label>
+                        <label class="block text-xs md:text-sm font-semibold text-gray-700 mb-1">Método de pago</label>
                         <select name="metodo_pago" id="metodo_pago" required
-                                class="w-full border border-gray-300 bg-gray-50 rounded-lg px-4 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm"
+                                class="w-full border border-gray-300 bg-gray-50 rounded-lg px-3 py-2.5 md:px-4 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm text-sm"
                                 onchange="mostrarCampos(this.value); validarMetodo();">
                             <option value="">Seleccione método</option>
                             <option value="Efectivo">💵 Efectivo</option>
@@ -197,16 +199,16 @@
 
                     <!-- Banco (transferencia) -->
                     <div id="campo-banco" class="hidden">
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Banco</label>
+                        <label class="block text-xs md:text-sm font-semibold text-gray-700 mb-1">Banco</label>
                         <input type="text" name="banco" id="inp_banco" placeholder="Ej: Bancolombia"
-                               class="w-full border border-gray-300 bg-gray-50 rounded-lg px-4 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm" />
+                               class="w-full border border-gray-300 bg-gray-50 rounded-lg px-3 py-2.5 md:px-4 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm text-sm" />
                         <p class="text-red-500 text-xs mt-1 hidden" id="err-banco">⚠ Ingresa el nombre del banco.</p>
                     </div>
 
                     <!-- Cuotas -->
                     <div id="campo-cuotas" class="hidden">
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Número de cuotas</label>
-                        <select name="cuotas" id="inp_cuotas" class="w-full border border-gray-300 bg-gray-50 rounded-lg px-4 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm">
+                        <label class="block text-xs md:text-sm font-semibold text-gray-700 mb-1">Número de cuotas</label>
+                        <select name="cuotas" id="inp_cuotas" class="w-full border border-gray-300 bg-gray-50 rounded-lg px-3 py-2.5 md:px-4 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm text-sm">
                             <option value="6">6 cuotas</option>
                             <option value="12">12 cuotas</option>
                             <option value="24">24 cuotas</option>
@@ -218,140 +220,140 @@
 
                     <!-- Tarjeta número -->
                     <div id="campo-tarjeta-numero" class="hidden">
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Número de tarjeta</label>
+                        <label class="block text-xs md:text-sm font-semibold text-gray-700 mb-1">Número de tarjeta</label>
                         <input type="text" name="tarjeta_numero" id="inp_tarjeta_num"
                                placeholder="1234 5678 9012 3456" maxlength="19"
-                               class="w-full border border-gray-300 bg-gray-50 rounded-lg px-4 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm font-mono"
-                               oninput="formatearTarjeta(this)" />
+                               class="w-full border border-gray-300 bg-gray-50 rounded-lg px-3 py-2.5 md:px-4 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm font-mono text-sm"
+                               oninput="formatearTarjeta(this)" inputmode="numeric" />
                         <p class="text-red-500 text-xs mt-1 hidden" id="err-tarjeta-num">⚠ Ingresa los 16 dígitos de tu tarjeta.</p>
                         <p class="text-green-600 text-xs mt-1 hidden" id="ok-tarjeta-num">✔ Número de tarjeta válido.</p>
                     </div>
 
                     <!-- Tarjeta nombre -->
                     <div id="campo-tarjeta-nombre" class="hidden">
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Nombre en la tarjeta</label>
+                        <label class="block text-xs md:text-sm font-semibold text-gray-700 mb-1">Nombre en la tarjeta</label>
                         <input type="text" name="tarjeta_nombre" id="inp_tarjeta_nom"
                                placeholder="Ej: CAMILO VALBUENA"
-                               class="w-full border border-gray-300 bg-gray-50 rounded-lg px-4 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm uppercase" />
+                               class="w-full border border-gray-300 bg-gray-50 rounded-lg px-3 py-2.5 md:px-4 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm uppercase text-sm" />
                         <p class="text-red-500 text-xs mt-1 hidden" id="err-tarjeta-nom">⚠ Ingresa el nombre tal como aparece en la tarjeta.</p>
                         <p class="text-green-600 text-xs mt-1 hidden" id="ok-tarjeta-nom">✔ Nombre válido.</p>
                     </div>
 
                     <!-- Tarjeta vencimiento -->
                     <div id="campo-tarjeta-venc" class="hidden">
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Fecha de vencimiento</label>
+                        <label class="block text-xs md:text-sm font-semibold text-gray-700 mb-1">Fecha de vencimiento</label>
                         <input type="text" name="tarjeta_vencimiento" id="inp_tarjeta_venc"
                                placeholder="MM/AA" maxlength="5"
-                               class="w-full border border-gray-300 bg-gray-50 rounded-lg px-4 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm text-center"
-                               oninput="formatearVencimiento(this)" />
+                               class="w-full border border-gray-300 bg-gray-50 rounded-lg px-3 py-2.5 md:px-4 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm text-center text-sm"
+                               oninput="formatearVencimiento(this)" inputmode="numeric" />
                         <p class="text-red-500 text-xs mt-1 hidden" id="err-tarjeta-venc">⚠ Formato MM/AA — la tarjeta no puede estar vencida.</p>
                         <p class="text-green-600 text-xs mt-1 hidden" id="ok-tarjeta-venc">✔ Fecha válida.</p>
                     </div>
 
                     <!-- CVV -->
                     <div id="campo-tarjeta-cvv" class="hidden">
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">CVV</label>
+                        <label class="block text-xs md:text-sm font-semibold text-gray-700 mb-1">CVV</label>
                         <input type="password" name="tarjeta_cvv" id="inp_tarjeta_cvv"
                                placeholder="***" maxlength="4"
-                               class="w-full border border-gray-300 bg-gray-50 rounded-lg px-4 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm text-center" />
+                               class="w-full border border-gray-300 bg-gray-50 rounded-lg px-3 py-2.5 md:px-4 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm text-center text-sm"
+                               inputmode="numeric" />
                         <p class="text-red-500 text-xs mt-1 hidden" id="err-tarjeta-cvv">⚠ El CVV debe tener 3 o 4 dígitos.</p>
                         <p class="text-green-600 text-xs mt-1 hidden" id="ok-tarjeta-cvv">✔ CVV válido.</p>
                     </div>
 
                     <!-- Teléfono -->
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Teléfono de contacto</label>
+                        <label class="block text-xs md:text-sm font-semibold text-gray-700 mb-1">Teléfono de contacto</label>
                         <input type="tel" name="telefono" id="inp_tel" required placeholder="Ej: 3001234567"
-                               class="w-full border border-gray-300 bg-gray-50 rounded-lg px-4 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm" />
+                               class="w-full border border-gray-300 bg-gray-50 rounded-lg px-3 py-2.5 md:px-4 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm text-sm"
+                               inputmode="numeric" />
                         <p class="text-red-500 text-xs mt-1 hidden" id="err-tel">⚠ Ingresa un teléfono colombiano válido (10 dígitos, empieza por 3).</p>
                         <p class="text-green-600 text-xs mt-1 hidden" id="ok-tel">✔ Teléfono válido.</p>
                     </div>
 
                     <!-- Dirección -->
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Dirección de entrega</label>
+                        <label class="block text-xs md:text-sm font-semibold text-gray-700 mb-1">Dirección de entrega</label>
                         <input type="text" name="direccion" id="inp_dir" required placeholder="Ej: Calle 123 # 45-67"
-                               class="w-full border border-gray-300 bg-gray-50 rounded-lg px-4 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm" />
+                               class="w-full border border-gray-300 bg-gray-50 rounded-lg px-3 py-2.5 md:px-4 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm text-sm" />
                         <p class="text-red-500 text-xs mt-1 hidden" id="err-dir">⚠ Ingresa una dirección válida (mínimo 8 caracteres).</p>
                         <p class="text-green-600 text-xs mt-1 hidden" id="ok-dir">✔ Dirección válida.</p>
                     </div>
 
                 </div>
 
-                <div class="mt-6">
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Observaciones adicionales</label>
+                <!-- Observaciones -->
+                <div class="mt-4 md:mt-6">
+                    <label class="block text-xs md:text-sm font-semibold text-gray-700 mb-1">Observaciones adicionales</label>
                     <textarea name="observaciones" id="inp_obs" rows="3"
                               placeholder="Accesorios adicionales, preferencias especiales..."
-                              class="w-full border border-gray-300 bg-gray-50 rounded-lg px-4 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm"></textarea>
+                              class="w-full border border-gray-300 bg-gray-50 rounded-lg px-3 py-2.5 md:px-4 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm text-sm"></textarea>
                 </div>
 
                 <!-- Resumen -->
-                <div class="mt-8 p-5 bg-blue-50/50 rounded-xl border border-blue-100 shadow-sm">
-                    <h4 class="font-bold text-blue-900 mb-3 flex items-center gap-2">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                <div class="mt-6 md:mt-8 p-4 md:p-5 bg-blue-50/50 rounded-xl border border-blue-100 shadow-sm">
+                    <h4 class="font-bold text-blue-900 mb-3 flex items-center gap-2 text-sm md:text-base">
+                        <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                         Resumen de la Orden
                     </h4>
-                    <div class="grid grid-cols-2 gap-2 text-sm">
+                    <div class="grid grid-cols-2 gap-2 text-xs md:text-sm">
                         <p class="text-gray-600">Vehículo:</p>
                         <p class="font-semibold text-gray-900 text-right">{{ $vehiculo['nombre'] }}</p>
-
                         <p class="text-gray-600">Tipo:</p>
                         <p class="font-semibold text-gray-900 text-right">{{ ucfirst($tipo) }}</p>
-
                         <p class="text-gray-600">Precio unitario:</p>
                         <p class="font-semibold text-gray-900 text-right" id="resumen-precio-unit">
                             ${{ number_format($vehiculo['precio']) }} COP
                         </p>
-
                         <p class="text-gray-600">Disponibles:</p>
                         <p class="font-semibold text-right {{ $disponibles <= 10 ? 'text-yellow-600' : 'text-green-600' }}">
                             {{ $disponibles }} unidad(es)
                         </p>
-
                         <p class="text-gray-600">Cantidad:</p>
                         <p class="font-semibold text-gray-900 text-right" id="resumen-cantidad">1</p>
-
                         <p class="text-gray-600 font-bold border-t border-blue-200 pt-2 mt-1">Total a pagar:</p>
-                        <p class="font-bold text-green-700 text-right text-lg border-t border-blue-200 pt-2 mt-1" id="resumen-total">
+                        <p class="font-bold text-green-700 text-right text-base md:text-lg border-t border-blue-200 pt-2 mt-1" id="resumen-total">
                             ${{ number_format($vehiculo['precio']) }} COP
                         </p>
                     </div>
                 </div>
 
                 <!-- Firma -->
-                <div class="mt-8 border border-gray-200 rounded-xl p-5 bg-gray-50 shadow-sm">
-                    <h4 class="font-bold text-gray-800 mb-2 flex items-center gap-2">✍️ Firma del Comprador</h4>
-                    <p class="text-sm text-gray-500 mb-3">Firme en el recuadro inferior con el mouse o su dedo.</p>
-                    <div class="bg-white p-1 border border-gray-300 rounded-lg shadow-inner" id="firma-box">
-                        <canvas id="firmaCanvas" width="600" height="150" class="w-full cursor-crosshair rounded"></canvas>
+                <div class="mt-6 md:mt-8 border border-gray-200 rounded-xl p-4 md:p-5 bg-gray-50 shadow-sm">
+                    <h4 class="font-bold text-gray-800 mb-2 flex items-center gap-2 text-sm md:text-base">✍️ Firma del Comprador</h4>
+                    <p class="text-xs md:text-sm text-gray-500 mb-3">Firme en el recuadro inferior con el mouse o su dedo.</p>
+                    <div class="bg-white p-1 border border-gray-300 rounded-lg shadow-inner overflow-hidden" id="firma-box">
+                        <!-- Canvas adaptado: 100% ancho, altura fija -->
+                        <canvas id="firmaCanvas" height="150" class="w-full cursor-crosshair rounded touch-none" style="display:block;"></canvas>
                     </div>
                     <input type="hidden" name="firma_comprador" id="firma_comprador" />
                     <p class="text-red-500 text-xs mt-2 hidden" id="err-firma">⚠ Por favor firma en el recuadro antes de continuar.</p>
                     <p class="text-green-600 text-xs mt-2 hidden" id="ok-firma">✔ Firma registrada.</p>
                     <div class="mt-3 flex justify-end">
                         <button type="button" onclick="limpiarFirma()"
-                                class="bg-white hover:bg-gray-100 text-gray-700 font-medium border border-gray-300 px-4 py-1.5 rounded-lg text-sm shadow-sm transition-colors flex items-center gap-1">
+                                class="bg-white hover:bg-gray-100 text-gray-700 font-medium border border-gray-300 px-4 py-1.5 rounded-lg text-xs md:text-sm shadow-sm transition-colors flex items-center gap-1">
                             🗑️ Limpiar firma
                         </button>
                     </div>
                 </div>
 
-                <!-- Firma Centrada -->
-                <div class="mt-8 flex justify-center text-center text-sm text-gray-600 border-t border-gray-200 pt-6">
-                    <div class="w-64">
+                <!-- Firma centrada -->
+                <div class="mt-6 md:mt-8 flex justify-center text-center text-xs md:text-sm text-gray-600 border-t border-gray-200 pt-5 md:pt-6">
+                    <div class="w-48 md:w-64">
                         <div class="border-b-2 border-gray-800 mb-2 h-8 mx-4"></div>
                         <p class="font-bold text-gray-900">CONCESIONARIO</p>
                         <p>Motrix S.A.S.</p>
                     </div>
                 </div>
 
-                <div class="mt-10 flex flex-wrap gap-4 justify-center md:justify-start">
+                <!-- Botones de acción -->
+                <div class="mt-8 md:mt-10 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center md:justify-start">
                     <button type="button" onclick="intentarConfirmar()"
-                            class="bg-black hover:bg-gray-800 text-white font-bold px-8 py-3.5 rounded-xl shadow-lg transition-transform hover:scale-105 flex items-center gap-2">
+                            class="w-full sm:w-auto bg-black hover:bg-gray-800 text-white font-bold px-6 md:px-8 py-3.5 rounded-xl shadow-lg transition-transform hover:scale-105 flex items-center justify-center gap-2 text-sm md:text-base">
                         ✅ Confirmar Compra
                     </button>
                     <a href="{{ url()->previous() }}"
-                       class="bg-white hover:bg-gray-50 text-gray-700 font-semibold px-8 py-3.5 rounded-xl shadow-md border border-gray-300 transition-colors flex items-center gap-2">
+                       class="w-full sm:w-auto text-center bg-white hover:bg-gray-50 text-gray-700 font-semibold px-6 md:px-8 py-3.5 rounded-xl shadow-md border border-gray-300 transition-colors flex items-center justify-center gap-2 text-sm md:text-base">
                         ❌ Cancelar
                     </a>
                 </div>
@@ -362,26 +364,28 @@
     </div>
 
     <!-- Modal de Confirmación -->
-    <div id="modalConfirmacion" class="hidden fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center backdrop-blur-sm transition-opacity duration-300 opacity-0">
-        <div id="modalContenido" class="bg-white p-8 rounded-2xl shadow-2xl max-w-sm w-full mx-4 text-center transform transition-transform duration-300 scale-95">
-            <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+    <div id="modalConfirmacion" class="hidden fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center backdrop-blur-sm transition-opacity duration-300 opacity-0 px-4">
+        <div id="modalContenido" class="bg-white p-6 md:p-8 rounded-2xl shadow-2xl w-full max-w-sm mx-auto text-center transform transition-transform duration-300 scale-95">
+            <div class="w-14 h-14 md:w-16 md:h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl md:text-3xl">
+                <svg class="w-7 h-7 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
             </div>
-            <h3 class="text-2xl font-bold text-gray-900 mb-2">¿Confirmar compra?</h3>
-            <p class="text-sm text-gray-600 mb-2">
+            <h3 class="text-xl md:text-2xl font-bold text-gray-900 mb-2">¿Confirmar compra?</h3>
+            <p class="text-xs md:text-sm text-gray-600 mb-2">
                 Vehículo: <strong>{{ $vehiculo['nombre'] }}</strong>
             </p>
-            <p class="text-sm text-gray-600 mb-1">
+            <p class="text-xs md:text-sm text-gray-600 mb-1">
                 Cantidad: <strong id="modal-cantidad">1</strong> unidad(es)
             </p>
-            <p class="text-sm text-gray-600 mb-6">
+            <p class="text-xs md:text-sm text-gray-600 mb-5 md:mb-6">
                 Total: <strong class="text-green-700" id="modal-total">${{ number_format($vehiculo['precio']) }} COP</strong>
             </p>
             <div class="flex flex-col gap-3">
-                <button type="button" onclick="ejecutarCompra()" class="w-full px-4 py-3 bg-black text-white hover:bg-gray-800 rounded-xl font-bold shadow-md transition-all hover:shadow-lg">
+                <button type="button" onclick="ejecutarCompra()"
+                        class="w-full px-4 py-3 bg-black text-white hover:bg-gray-800 rounded-xl font-bold shadow-md transition-all hover:shadow-lg text-sm md:text-base">
                     Sí, realizar compra
                 </button>
-                <button type="button" onclick="cerrarModal()" class="w-full px-4 py-3 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl font-semibold transition-colors">
+                <button type="button" onclick="cerrarModal()"
+                        class="w-full px-4 py-3 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl font-semibold transition-colors text-sm md:text-base">
                     Revisar de nuevo
                 </button>
             </div>
@@ -403,7 +407,7 @@
             if (!inp) return;
             const hoyDate  = new Date();
             const max18    = new Date(hoyDate.getFullYear() - 18, hoyDate.getMonth(), hoyDate.getDate());
-            inp.max = max18.toISOString().split('T')[0];   // no permite seleccionar fecha futura a 18 años atrás
+            inp.max = max18.toISOString().split('T')[0];
             inp.min = '1900-01-01';
         })();
 
@@ -411,7 +415,6 @@
             return new Intl.NumberFormat('es-CO').format(num);
         }
 
-        // ── Utilidad mensajes ─────────────────────────────────────
         function mostrarError(idErr, idOk) {
             document.getElementById(idErr).classList.remove('hidden');
             document.getElementById(idOk).classList.add('hidden');
@@ -424,8 +427,6 @@
             document.getElementById(idErr).classList.add('hidden');
             document.getElementById(idOk).classList.add('hidden');
         }
-
-        // ── Resaltar campo ────────────────────────────────────────
         function marcarCampo(el, esValido) {
             if (esValido) {
                 el.classList.remove('border-red-400', 'bg-red-50');
@@ -436,10 +437,6 @@
             }
         }
 
-        // ══════════════════════════════════════════════════════════
-        // VALIDACIONES INDIVIDUALES
-        // ══════════════════════════════════════════════════════════
-
         function validarNombre() {
             const el  = document.getElementById('inp_nombre');
             const val = el.value.trim();
@@ -448,7 +445,6 @@
             ok ? mostrarOk('err-nombre','ok-nombre') : mostrarError('err-nombre','ok-nombre');
             return ok;
         }
-
         function validarDocumento() {
             const el  = document.getElementById('inp_doc');
             const val = el.value.trim().replace(/\s/g, '');
@@ -457,8 +453,6 @@
             ok ? mostrarOk('err-doc','ok-doc') : mostrarError('err-doc','ok-doc');
             return ok;
         }
-
-        // ── VALIDACIÓN FECHA DE NACIMIENTO (NUEVA) ───────────────
         function validarNacimiento() {
             const el  = document.getElementById('inp_nacimiento');
             const val = el.value;
@@ -466,7 +460,6 @@
             if (val) {
                 const nacimiento = new Date(val);
                 const hoyDate    = new Date();
-                // Calcular edad exacta en años
                 let edad = hoyDate.getFullYear() - nacimiento.getFullYear();
                 const m  = hoyDate.getMonth() - nacimiento.getMonth();
                 if (m < 0 || (m === 0 && hoyDate.getDate() < nacimiento.getDate())) edad--;
@@ -476,22 +469,18 @@
             ok ? mostrarOk('err-nacimiento','ok-nacimiento') : mostrarError('err-nacimiento','ok-nacimiento');
             return ok;
         }
-        // ── FIN VALIDACIÓN FECHA DE NACIMIENTO ───────────────────
-
         function validarColor() {
             const val = document.getElementById('inp_color').value;
             const ok  = val !== '';
             ok ? mostrarOk('err-color','ok-color') : mostrarError('err-color','ok-color');
             return ok;
         }
-
         function validarMetodo() {
             const val = document.getElementById('metodo_pago').value;
             const ok  = val !== '';
             ok ? mostrarOk('err-metodo','ok-metodo') : mostrarError('err-metodo','ok-metodo');
             return ok;
         }
-
         function validarBanco() {
             const el  = document.getElementById('inp_banco');
             const val = el.value.trim();
@@ -502,7 +491,6 @@
             document.getElementById('err-banco').classList.toggle('hidden', ok);
             return ok;
         }
-
         function validarTarjetaNum() {
             const el  = document.getElementById('inp_tarjeta_num');
             const val = el.value.replace(/\s/g, '');
@@ -513,7 +501,6 @@
             ok ? mostrarOk('err-tarjeta-num','ok-tarjeta-num') : mostrarError('err-tarjeta-num','ok-tarjeta-num');
             return ok;
         }
-
         function validarTarjetaNom() {
             const el  = document.getElementById('inp_tarjeta_nom');
             const val = el.value.trim();
@@ -524,7 +511,6 @@
             ok ? mostrarOk('err-tarjeta-nom','ok-tarjeta-nom') : mostrarError('err-tarjeta-nom','ok-tarjeta-nom');
             return ok;
         }
-
         function validarTarjetaVenc() {
             const el  = document.getElementById('inp_tarjeta_venc');
             const val = el.value.trim();
@@ -541,7 +527,6 @@
             ok ? mostrarOk('err-tarjeta-venc','ok-tarjeta-venc') : mostrarError('err-tarjeta-venc','ok-tarjeta-venc');
             return ok;
         }
-
         function validarCvv() {
             const el  = document.getElementById('inp_tarjeta_cvv');
             const val = el.value.trim();
@@ -552,7 +537,6 @@
             ok ? mostrarOk('err-tarjeta-cvv','ok-tarjeta-cvv') : mostrarError('err-tarjeta-cvv','ok-tarjeta-cvv');
             return ok;
         }
-
         function validarTelefono() {
             const el  = document.getElementById('inp_tel');
             const val = el.value.trim().replace(/\s/g, '');
@@ -561,7 +545,6 @@
             ok ? mostrarOk('err-tel','ok-tel') : mostrarError('err-tel','ok-tel');
             return ok;
         }
-
         function validarDireccion() {
             const el  = document.getElementById('inp_dir');
             const val = el.value.trim();
@@ -581,10 +564,10 @@
             return ok;
         }
 
-        // ── Listeners en tiempo real ──────────────────────────────
+        // Listeners en tiempo real
         document.getElementById('inp_nombre').addEventListener('input', validarNombre);
         document.getElementById('inp_doc').addEventListener('input', validarDocumento);
-        document.getElementById('inp_nacimiento').addEventListener('change', validarNacimiento); // ← NUEVO
+        document.getElementById('inp_nacimiento').addEventListener('change', validarNacimiento);
         document.getElementById('inp_tel').addEventListener('input', validarTelefono);
         document.getElementById('inp_dir').addEventListener('input', validarDireccion);
         document.getElementById('inp_banco').addEventListener('input', validarBanco);
@@ -593,11 +576,10 @@
         document.getElementById('inp_tarjeta_venc').addEventListener('input', validarTarjetaVenc);
         document.getElementById('inp_tarjeta_cvv').addEventListener('input', validarCvv);
 
-        // ── Validar todo antes de abrir el modal ──────────────────
         function validarTodo() {
             const n  = validarNombre();
             const d  = validarDocumento();
-            const na = validarNacimiento();   // ← NUEVO
+            const na = validarNacimiento();
             const c  = validarColor();
             const m  = validarMetodo();
             const b  = validarBanco();
@@ -611,7 +593,6 @@
             return n && d && na && c && m && b && tn && tno && tv && tc && t && dir && f;
         }
 
-        // ── Cantidad ──────────────────────────────────────────────
         function cambiarCantidad(delta) {
             const inp = document.getElementById('inp_cantidad');
             if (!inp) return;
@@ -620,7 +601,6 @@
             inp.value = val;
             actualizarResumen();
         }
-
         function actualizarResumen() {
             const inp = document.getElementById('inp_cantidad');
             if (!inp) return;
@@ -636,11 +616,9 @@
             document.getElementById('modal-cantidad').textContent       = cantidad;
             document.getElementById('modal-total').textContent          = totalStr;
         }
-
         const inpCantidad = document.getElementById('inp_cantidad');
         if (inpCantidad) inpCantidad.addEventListener('input', actualizarResumen);
 
-        // ── Color ─────────────────────────────────────────────────
         function seleccionarColor(color, btnElement) {
             document.getElementById('inp_color').value = color;
             document.querySelectorAll('.color-swatch').forEach(el =>
@@ -649,7 +627,6 @@
             validarColor();
         }
 
-        // ── Modal ─────────────────────────────────────────────────
         function intentarConfirmar() {
             if (!validarTodo()) {
                 const primerError = document.querySelector('[id^="err-"]:not(.hidden)');
@@ -658,7 +635,7 @@
             }
             document.getElementById('firma_comprador').value = canvas.toDataURL('image/png');
             actualizarResumen();
-            const modal    = document.getElementById('modalConfirmacion');
+            const modal     = document.getElementById('modalConfirmacion');
             const contenido = document.getElementById('modalContenido');
             modal.classList.remove('hidden');
             setTimeout(() => {
@@ -668,9 +645,8 @@
                 contenido.classList.add('scale-100');
             }, 10);
         }
-
         function cerrarModal() {
-            const modal    = document.getElementById('modalConfirmacion');
+            const modal     = document.getElementById('modalConfirmacion');
             const contenido = document.getElementById('modalContenido');
             modal.classList.remove('opacity-100');
             modal.classList.add('opacity-0');
@@ -678,13 +654,11 @@
             contenido.classList.add('scale-95');
             setTimeout(() => modal.classList.add('hidden'), 300);
         }
-
         function ejecutarCompra() {
             document.getElementById('firma_comprador').value = canvas.toDataURL('image/png');
             document.getElementById('formCompra').submit();
         }
 
-        // ── Campos dinámicos de pago ──────────────────────────────
         function mostrarCampos(valor) {
             document.getElementById('campo-banco').classList.toggle('hidden', valor !== 'Transferencia');
             document.getElementById('campo-cuotas').classList.toggle('hidden', valor !== 'Cuotas');
@@ -694,19 +668,16 @@
             document.getElementById('campo-tarjeta-venc').classList.toggle('hidden',   !esTarjeta);
             document.getElementById('campo-tarjeta-cvv').classList.toggle('hidden',    !esTarjeta);
         }
-
         function formatearTarjeta(input) {
             let val = input.value.replace(/\D/g, '').substring(0, 16);
             input.value = val.replace(/(.{4})/g, '$1 ').trim();
         }
-
         function formatearVencimiento(input) {
             let val = input.value.replace(/\D/g, '').substring(0, 4);
             if (val.length >= 3) val = val.substring(0,2) + '/' + val.substring(2);
             input.value = val;
         }
 
-        // ── getDatos / PDF / CSV ──────────────────────────────────
         function getDatos() {
             const cantidad = parseInt(document.getElementById('inp_cantidad')?.value) || 1;
             const total    = precioUnitario * cantidad;
@@ -764,7 +735,6 @@
             doc.text('COMPRADOR - Firma y Huella', 120, 226);
             doc.save(`compra_${d.vehiculo.replace(/ /g,'_')}.pdf`);
         }
-
         function descargarCSV() {
             const d = getDatos();
             const rows = [
@@ -783,52 +753,80 @@
             a.click(); URL.revokeObjectURL(url);
         }
 
-        // ── Firma ─────────────────────────────────────────────────
+        // ── Canvas de firma responsivo ─────────────────────────────
         const canvas  = document.getElementById('firmaCanvas');
         const ctx     = canvas ? canvas.getContext('2d') : null;
         let firmando  = false;
 
-        if (canvas) {
-            canvas.addEventListener('mousedown', e => { firmando = true; ctx.beginPath(); ctx.moveTo(e.offsetX, e.offsetY); });
-            canvas.addEventListener('mousemove', e => {
-                if (!firmando) return;
-                ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.strokeStyle = '#000';
-                ctx.lineTo(e.offsetX, e.offsetY); ctx.stroke();
-            });
-            canvas.addEventListener('mouseup', () => {
-                firmando = false;
-                firmaRealizada = true;
-                guardarFirma();
-                mostrarOk('err-firma', 'ok-firma');
-                document.getElementById('firma-box').classList.remove('border-red-400');
-                document.getElementById('firma-box').classList.add('border-green-400');
-            });
-            canvas.addEventListener('mouseleave', () => { firmando = false; });
-            canvas.addEventListener('touchstart', e => {
-                e.preventDefault(); firmando = true;
-                const t = e.touches[0]; const r = canvas.getBoundingClientRect();
-                ctx.beginPath(); ctx.moveTo(t.clientX - r.left, t.clientY - r.top);
-            });
-            canvas.addEventListener('touchmove', e => {
-                e.preventDefault(); if (!firmando) return;
-                const t = e.touches[0]; const r = canvas.getBoundingClientRect();
-                ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.strokeStyle = '#000';
-                ctx.lineTo(t.clientX - r.left, t.clientY - r.top); ctx.stroke();
-            });
-            canvas.addEventListener('touchend', () => {
-                firmando = false;
-                firmaRealizada = true;
-                guardarFirma();
-                mostrarOk('err-firma', 'ok-firma');
-                document.getElementById('firma-box').classList.remove('border-red-400');
-                document.getElementById('firma-box').classList.add('border-green-400');
-            });
+        // Ajustar resolución del canvas al ancho real del contenedor
+        function ajustarCanvas() {
+            if (!canvas) return;
+            const rect = canvas.getBoundingClientRect();
+            canvas.width  = rect.width  || 600;
+            canvas.height = 150;
+        }
+        ajustarCanvas();
+        window.addEventListener('resize', () => { ajustarCanvas(); firmaRealizada = false; });
+
+        function getCoordenadas(e) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width  / rect.width;
+            const scaleY = canvas.height / rect.height;
+            if (e.touches) {
+                return {
+                    x: (e.touches[0].clientX - rect.left) * scaleX,
+                    y: (e.touches[0].clientY - rect.top)  * scaleY,
+                };
+            }
+            return {
+                x: (e.clientX - rect.left) * scaleX,
+                y: (e.clientY - rect.top)  * scaleY,
+            };
         }
 
+        if (canvas) {
+            // Mouse
+            canvas.addEventListener('mousedown', e => {
+                firmando = true;
+                const {x, y} = getCoordenadas(e);
+                ctx.beginPath(); ctx.moveTo(x, y);
+            });
+            canvas.addEventListener('mousemove', e => {
+                if (!firmando) return;
+                const {x, y} = getCoordenadas(e);
+                ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.strokeStyle = '#000';
+                ctx.lineTo(x, y); ctx.stroke();
+            });
+            canvas.addEventListener('mouseup', () => { firmando = false; firmaTerminada(); });
+            canvas.addEventListener('mouseleave', () => { firmando = false; });
+
+            // Touch (iOS / Android)
+            canvas.addEventListener('touchstart', e => {
+                e.preventDefault();
+                firmando = true;
+                const {x, y} = getCoordenadas(e);
+                ctx.beginPath(); ctx.moveTo(x, y);
+            }, { passive: false });
+            canvas.addEventListener('touchmove', e => {
+                e.preventDefault();
+                if (!firmando) return;
+                const {x, y} = getCoordenadas(e);
+                ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.strokeStyle = '#000';
+                ctx.lineTo(x, y); ctx.stroke();
+            }, { passive: false });
+            canvas.addEventListener('touchend', () => { firmando = false; firmaTerminada(); });
+        }
+
+        function firmaTerminada() {
+            firmaRealizada = true;
+            guardarFirma();
+            mostrarOk('err-firma', 'ok-firma');
+            document.getElementById('firma-box').classList.remove('border-red-400');
+            document.getElementById('firma-box').classList.add('border-green-400');
+        }
         function guardarFirma() {
             if (canvas) document.getElementById('firma_comprador').value = canvas.toDataURL('image/png');
         }
-
         function limpiarFirma() {
             if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
             document.getElementById('firma_comprador').value = '';
@@ -837,5 +835,4 @@
             document.getElementById('firma-box').classList.remove('border-green-400', 'border-red-400');
         }
     </script>
-
 </x-app-layout>
