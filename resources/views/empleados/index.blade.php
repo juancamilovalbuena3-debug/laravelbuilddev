@@ -7,12 +7,12 @@
 
     <div class="py-12 bg-white min-h-screen">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg flex flex-col sm:flex-row">
+            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg flex">
 
                 <!-- Sidebar -->
-                <aside class="w-full sm:w-64 bg-gray-100/90 border-r p-6">
+                <aside class="w-64 bg-gray-100/90 border-r p-6">
                     <h2 class="text-lg font-bold mb-4">Panel</h2>
-                    <ul class="flex flex-wrap sm:flex-col gap-2 sm:gap-0 sm:space-y-2">
+                    <ul class="space-y-2">
                         <li><a href="{{ route('dashboard') }}" class="text-black font-semibold">Inicio</a></li>
                         <li><a href="{{ route('empleados.index') }}" class="text-black font-semibold">Empleados</a></li>
                         <li><a href="{{ route('carros') }}" class="text-black font-semibold">Carros</a></li>
@@ -27,7 +27,7 @@
                 </aside>
 
                 <!-- Contenido principal -->
-                <main class="flex-1 p-4 sm:p-6 min-w-0">
+                <main class="flex-1 p-6 min-w-0">
                     <h1 class="text-2xl font-bold mb-6">Gestión de Empleados y Vehículos</h1>
 
                     @if(session('error'))
@@ -65,9 +65,9 @@
 
                         <!-- Tabla de empleados -->
                         <div x-show="tab === 'empleados'">
-                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
+                            <div class="flex justify-between items-center mb-4">
                                 <h2 class="text-xl font-semibold">Lista de Empleados</h2>
-                                <div class="flex gap-2">
+                                <div class="space-x-2">
                                     <a href="{{ route('empleados.export.pdf', ['busqueda' => request('tab') === 'empleados' ? request('busqueda') : '']) }}"
                                        class="bg-white hover:bg-gray-200 text-black px-3 py-2 rounded shadow text-sm font-semibold border transition">
                                         Exportar PDF
@@ -80,12 +80,12 @@
                             </div>
 
                             <!-- Buscador empleados -->
-                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
-                                <form method="GET" action="{{ route('empleados.index') }}" class="flex flex-wrap gap-2">
+                            <div class="flex justify-between items-center mb-6">
+                                <form method="GET" action="{{ route('empleados.index') }}" class="flex space-x-2">
                                     <input type="hidden" name="tab" value="empleados">
                                     <input type="text" name="busqueda" value="{{ request('tab') !== 'vehiculos' ? request('busqueda') : '' }}"
                                            placeholder="Buscar por nombre o correo"
-                                           class="border rounded px-3 py-2 w-full sm:w-64 focus:ring-black focus:border-black">
+                                           class="border rounded px-3 py-2 w-64 focus:ring-black focus:border-black">
                                     <button type="submit"
                                             class="bg-white hover:bg-gray-200 text-black px-4 py-2 rounded shadow font-semibold border transition">
                                         Buscar
@@ -96,7 +96,7 @@
                                     </a>
                                 </form>
                                 <a href="{{ route('empleados.create') }}"
-                                   class="bg-white hover:bg-gray-200 text-black px-4 py-2 rounded shadow font-semibold border transition text-center">
+                                   class="bg-white hover:bg-gray-200 text-black px-4 py-2 rounded shadow font-semibold border transition">
                                     + Agregar Empleado
                                 </a>
                             </div>
@@ -131,16 +131,16 @@
                                                         {{ $empleado->email }}
                                                     </td>
                                                     <td class="border px-4 py-2">
-                                                        <div class="flex flex-col sm:flex-row gap-1 sm:space-x-2">
+                                                        <div class="flex space-x-2">
                                                             <a href="{{ route('empleados.edit', $empleado->id) }}"
-                                                               class="bg-white hover:bg-gray-200 text-black px-3 py-1 rounded shadow font-semibold border transition text-center">
+                                                               class="bg-white hover:bg-gray-200 text-black px-3 py-1 rounded shadow font-semibold border transition">
                                                                 Editar
                                                             </a>
                                                             <form action="{{ route('empleados.destroy', $empleado->id) }}" method="POST">
                                                                 @csrf
                                                                 @method('DELETE')
                                                                 <button type="submit" onclick="return confirm('¿Eliminar este empleado?')"
-                                                                        class="bg-white hover:bg-gray-200 text-black px-3 py-1 rounded shadow font-semibold border transition w-full">
+                                                                        class="bg-white hover:bg-gray-200 text-black px-3 py-1 rounded shadow font-semibold border transition">
                                                                     Eliminar
                                                                 </button>
                                                             </form>
@@ -170,9 +170,9 @@
 
                         <!-- Tabla de vehículos -->
                         <div x-show="tab === 'vehiculos'">
-                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
+                            <div class="flex justify-between items-center mb-4">
                                 <h2 class="text-xl font-semibold">Vehículos Publicados</h2>
-                                <div class="flex gap-2">
+                                <div class="space-x-2">
                                     <a href="{{ route('vehiculos.export.pdf', ['busqueda' => request('busqueda'), 'tipo' => request('tipo')]) }}"
                                        class="bg-white hover:bg-gray-200 text-black px-3 py-2 rounded shadow text-sm font-semibold border transition">
                                         Exportar PDF
@@ -185,12 +185,12 @@
                             </div>
 
                             <!-- Buscador vehículos -->
-                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
-                                <form method="GET" action="{{ route('empleados.index') }}" class="flex flex-wrap gap-2">
+                            <div class="flex justify-between items-center mb-6">
+                                <form method="GET" action="{{ route('empleados.index') }}" class="flex space-x-2">
                                     <input type="hidden" name="tab" value="vehiculos">
                                     <input type="text" name="busqueda" value="{{ request('tab') === 'vehiculos' ? request('busqueda') : '' }}"
                                            placeholder="Buscar por marca o modelo"
-                                           class="border rounded px-3 py-2 w-full sm:w-64 focus:ring-black focus:border-black">
+                                           class="border rounded px-3 py-2 w-64 focus:ring-black focus:border-black">
                                     <select name="tipo" class="border rounded px-3 py-2 focus:ring-black focus:border-black">
                                         <option value="">Todos los tipos</option>
                                         <option value="carro" {{ request('tipo') == 'carro' ? 'selected' : '' }}>Carros</option>
@@ -206,7 +206,7 @@
                                     </a>
                                 </form>
                                 <a href="{{ route('vehiculos.create') }}"
-                                   class="bg-white hover:bg-gray-200 text-black px-4 py-2 rounded shadow font-semibold border transition text-center">
+                                   class="bg-white hover:bg-gray-200 text-black px-4 py-2 rounded shadow font-semibold border transition">
                                     + Agregar Vehículo
                                 </a>
                             </div>
@@ -253,16 +253,16 @@
                                                     <td class="border px-4 py-2">${{ number_format($vehiculo->precio, 2) }}</td>
                                                     <td class="border px-4 py-2 truncate max-w-0" title="{{ $vehiculo->descripcion }}">{{ $vehiculo->descripcion }}</td>
                                                     <td class="border px-4 py-2">
-                                                        <div class="flex flex-col sm:flex-row gap-1 sm:space-x-2">
+                                                        <div class="flex space-x-2">
                                                             <a href="{{ route('vehiculos.edit', $vehiculo->id) }}"
-                                                               class="bg-white hover:bg-gray-200 text-black px-3 py-1 rounded shadow font-semibold border transition text-center">
+                                                               class="bg-white hover:bg-gray-200 text-black px-3 py-1 rounded shadow font-semibold border transition">
                                                                 Editar
                                                             </a>
                                                             <form action="{{ route('vehiculos.destroy', $vehiculo->id) }}" method="POST">
                                                                 @csrf
                                                                 @method('DELETE')
                                                                 <button type="submit" onclick="return confirm('¿Eliminar este vehículo?')"
-                                                                        class="bg-white hover:bg-gray-200 text-black px-3 py-1 rounded shadow font-semibold border transition w-full">
+                                                                        class="bg-white hover:bg-gray-200 text-black px-3 py-1 rounded shadow font-semibold border transition">
                                                                     Eliminar
                                                                 </button>
                                                             </form>
