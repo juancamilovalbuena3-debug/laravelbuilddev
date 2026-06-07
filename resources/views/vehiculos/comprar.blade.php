@@ -34,7 +34,6 @@
                 y el comprador abajo indicado, declaramos la compra del vehículo:
             </p>
 
-            <!-- Tabla declaración — scroll horizontal en móvil -->
             <div class="overflow-x-auto rounded-lg border border-black mb-4">
                 <table class="w-full text-xs md:text-sm" style="min-width: 480px;">
                     <thead>
@@ -86,7 +85,6 @@
             @endif
 
             @if($disponibles <= 0)
-                <!-- Agotado -->
                 <div class="text-center py-10">
                     <div class="text-5xl md:text-6xl mb-4">🚫</div>
                     <h3 class="text-lg md:text-xl font-bold text-red-700 mb-2">Vehículo agotado</h3>
@@ -110,7 +108,7 @@
                         <input type="text" name="nombre_comprador" id="inp_nombre" required
                                value="{{ auth()->user()->name }}"
                                class="w-full border border-gray-300 bg-gray-50 rounded-lg px-3 py-2.5 md:px-4 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm text-sm" />
-                        <p class="text-red-500 text-xs mt-1 hidden" id="err-nombre">⚠ Ingresa tu nombre completo (solo letras).</p>
+                        <p class="text-red-500 text-xs mt-1 hidden" id="err-nombre">⚠ Ingresa tu nombre completo (solo letras, sin doble espacio).</p>
                         <p class="text-green-600 text-xs mt-1 hidden" id="ok-nombre">✔ Nombre válido.</p>
                     </div>
 
@@ -118,6 +116,7 @@
                     <div>
                         <label class="block text-xs md:text-sm font-semibold text-gray-700 mb-1">Número de documento (CC/NIT)</label>
                         <input type="text" name="documento" id="inp_doc" required placeholder="Ej: 1234567890"
+                               inputmode="numeric"
                                class="w-full border border-gray-300 bg-gray-50 rounded-lg px-3 py-2.5 md:px-4 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm text-sm" />
                         <p class="text-red-500 text-xs mt-1 hidden" id="err-doc">⚠ Ingresa un número de documento válido (6 a 15 dígitos).</p>
                         <p class="text-green-600 text-xs mt-1 hidden" id="ok-doc">✔ Documento válido.</p>
@@ -274,9 +273,9 @@
                     <!-- Dirección -->
                     <div>
                         <label class="block text-xs md:text-sm font-semibold text-gray-700 mb-1">Dirección de entrega</label>
-                        <input type="text" name="direccion" id="inp_dir" required placeholder="Ej: Calle 123 # 45-67"
+                        <input type="text" name="direccion" id="inp_dir" required placeholder="Ej: Calle 15 # 30-45, Barrio Centro"
                                class="w-full border border-gray-300 bg-gray-50 rounded-lg px-3 py-2.5 md:px-4 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm text-sm" />
-                        <p class="text-red-500 text-xs mt-1 hidden" id="err-dir">⚠ Ingresa una dirección válida (mínimo 8 caracteres).</p>
+                        <p class="text-red-500 text-xs mt-1 hidden" id="err-dir">⚠ Ingresa una dirección válida. Ej: Calle 15 # 30-45 o Carrera 7 # 12-34.</p>
                         <p class="text-green-600 text-xs mt-1 hidden" id="ok-dir">✔ Dirección válida.</p>
                     </div>
 
@@ -285,9 +284,10 @@
                 <!-- Observaciones -->
                 <div class="mt-4 md:mt-6">
                     <label class="block text-xs md:text-sm font-semibold text-gray-700 mb-1">Observaciones adicionales</label>
-                    <textarea name="observaciones" id="inp_obs" rows="3"
-                              placeholder="Accesorios adicionales, preferencias especiales..."
+                    <textarea name="observaciones" id="inp_obs" rows="3" maxlength="1000"
+                              placeholder="Accesorios adicionales, preferencias especiales... (máx. 1000 caracteres)"
                               class="w-full border border-gray-300 bg-gray-50 rounded-lg px-3 py-2.5 md:px-4 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm text-sm"></textarea>
+                    {{-- El contador se inyecta por JS --}}
                 </div>
 
                 <!-- Resumen -->
@@ -323,7 +323,6 @@
                     <h4 class="font-bold text-gray-800 mb-2 flex items-center gap-2 text-sm md:text-base">✍️ Firma del Comprador</h4>
                     <p class="text-xs md:text-sm text-gray-500 mb-3">Firme en el recuadro inferior con el mouse o su dedo.</p>
                     <div class="bg-white p-1 border border-gray-300 rounded-lg shadow-inner overflow-hidden" id="firma-box">
-                        <!-- Canvas adaptado: 100% ancho, altura fija -->
                         <canvas id="firmaCanvas" height="150" class="w-full cursor-crosshair rounded touch-none" style="display:block;"></canvas>
                     </div>
                     <input type="hidden" name="firma_comprador" id="firma_comprador" />
@@ -411,6 +410,65 @@
             inp.min = '1900-01-01';
         })();
 
+        // ── Bloquear espacios en campos que no los necesitan ─────────────────
+        const camposSinEspacio = [
+            'inp_doc', 'inp_tel', 'inp_tarjeta_num',
+            'inp_tarjeta_nom', 'inp_tarjeta_venc', 'inp_tarjeta_cvv',
+            'inp_banco'
+        ];
+        camposSinEspacio.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener('keydown', e => {
+                if (e.key === ' ') e.preventDefault();
+            });
+            el.addEventListener('input', () => {
+                // Limpiar espacios que lleguen por pegado (excepto tarjeta que tiene su formateador)
+                if (id !== 'inp_tarjeta_num') {
+                    el.value = el.value.replace(/ /g, '');
+                }
+            });
+        });
+
+        // Nombre: espacio permitido solo entre palabras (no al inicio, no doble espacio)
+        document.getElementById('inp_nombre').addEventListener('keydown', e => {
+            if (e.key === ' ') {
+                const val = e.target.value;
+                if (val.length === 0 || val.endsWith(' ')) e.preventDefault();
+            }
+        });
+
+        // Dirección: espacio permitido pero no doble y no al inicio
+        document.getElementById('inp_dir').addEventListener('keydown', e => {
+            if (e.key === ' ') {
+                const val = e.target.value;
+                if (val.length === 0 || val.endsWith(' ')) e.preventDefault();
+            }
+        });
+
+        // Observaciones: máximo 1000 caracteres con contador dinámico
+        (function() {
+            const obs = document.getElementById('inp_obs');
+            if (!obs) return;
+            const contador = document.createElement('p');
+            contador.id = 'contador-obs';
+            contador.className = 'text-xs text-gray-400 mt-1 text-right';
+            contador.textContent = '0 / 1000 caracteres';
+            obs.parentNode.appendChild(contador);
+
+            obs.addEventListener('input', () => {
+                const len = obs.value.length;
+                contador.textContent = len + ' / 1000 caracteres';
+                if (len >= 900) {
+                    contador.className = 'text-xs text-red-500 mt-1 text-right font-semibold';
+                } else if (len >= 700) {
+                    contador.className = 'text-xs text-yellow-500 mt-1 text-right';
+                } else {
+                    contador.className = 'text-xs text-gray-400 mt-1 text-right';
+                }
+            });
+        })();
+
         function formatearNumero(num) {
             return new Intl.NumberFormat('es-CO').format(num);
         }
@@ -440,7 +498,9 @@
         function validarNombre() {
             const el  = document.getElementById('inp_nombre');
             const val = el.value.trim();
-            const ok  = val.length >= 3 && /^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s\-']+$/.test(val);
+            // Mínimo 3 chars, solo letras con un espacio simple entre palabras
+            const ok  = val.length >= 3
+                && /^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ]+(\s[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ]+)*$/.test(val);
             marcarCampo(el, ok);
             ok ? mostrarOk('err-nombre','ok-nombre') : mostrarError('err-nombre','ok-nombre');
             return ok;
@@ -506,7 +566,9 @@
             const val = el.value.trim();
             const visible = !document.getElementById('campo-tarjeta-nombre').classList.contains('hidden');
             if (!visible) return true;
-            const ok = val.length >= 3 && /^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]+$/.test(val);
+            // Nombre en tarjeta: solo letras con espacio simple entre palabras
+            const ok = val.length >= 3
+                && /^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ]+(\s[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ]+)*$/.test(val);
             marcarCampo(el, ok);
             ok ? mostrarOk('err-tarjeta-nom','ok-tarjeta-nom') : mostrarError('err-tarjeta-nom','ok-tarjeta-nom');
             return ok;
@@ -545,12 +607,41 @@
             ok ? mostrarOk('err-tel','ok-tel') : mostrarError('err-tel','ok-tel');
             return ok;
         }
+
+        // ── Validación de dirección colombiana coherente ──────────────────────
         function validarDireccion() {
             const el  = document.getElementById('inp_dir');
             const val = el.value.trim();
-            const ok  = val.length >= 8;
+
+            // Rechazos inmediatos
+            if (val.length < 10) {
+                marcarCampo(el, false);
+                mostrarError('err-dir', 'ok-dir');
+                return false;
+            }
+            // Solo números → inválido
+            if (/^[\d\s\-#]+$/.test(val)) {
+                marcarCampo(el, false);
+                mostrarError('err-dir', 'ok-dir');
+                return false;
+            }
+            // Una sola palabra sin números → inválido
+            if (val.split(' ').length < 2) {
+                marcarCampo(el, false);
+                mostrarError('err-dir', 'ok-dir');
+                return false;
+            }
+
+            // Patrón 1: formato # típico colombiano (Calle 15 # 30-45)
+            const tieneFormato = /\d+\s*#\s*\d+[\-–]\d+/.test(val);
+
+            // Patrón 2: empieza con palabra clave de dirección
+            const palabrasClave = /^(calle|carrera|avenida|diagonal|transversal|circular|autopista|kilometro|km|cl\.?|cr\.?|cra\.?|kra\.?|cll\.?|av\.?|dg\.?|tv\.?|mz\.?|bloque|torre|manzana|barrio|vereda|sector|conjunto|urb\.?|urbanizacion|finca|hacienda|corregimiento|municipio)\s/i;
+            const empiezaConClave = palabrasClave.test(val);
+
+            const ok = tieneFormato || empiezaConClave;
             marcarCampo(el, ok);
-            ok ? mostrarOk('err-dir','ok-dir') : mostrarError('err-dir','ok-dir');
+            ok ? mostrarOk('err-dir', 'ok-dir') : mostrarError('err-dir', 'ok-dir');
             return ok;
         }
 
@@ -758,7 +849,6 @@
         const ctx     = canvas ? canvas.getContext('2d') : null;
         let firmando  = false;
 
-        // Ajustar resolución del canvas al ancho real del contenedor
         function ajustarCanvas() {
             if (!canvas) return;
             const rect = canvas.getBoundingClientRect();
@@ -785,7 +875,6 @@
         }
 
         if (canvas) {
-            // Mouse
             canvas.addEventListener('mousedown', e => {
                 firmando = true;
                 const {x, y} = getCoordenadas(e);
@@ -800,7 +889,6 @@
             canvas.addEventListener('mouseup', () => { firmando = false; firmaTerminada(); });
             canvas.addEventListener('mouseleave', () => { firmando = false; });
 
-            // Touch (iOS / Android)
             canvas.addEventListener('touchstart', e => {
                 e.preventDefault();
                 firmando = true;
