@@ -126,7 +126,8 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     function applyNoSpace(input) {
-        if (!input) return;
+        if (!input || input._noSpaceApplied) return;
+        input._noSpaceApplied = true;
         input.addEventListener('keydown', function (e) {
             if (e.key === ' ' || e.code === 'Space') {
                 e.preventDefault();
@@ -143,15 +144,17 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    applyNoSpace(document.getElementById('code'));
-
-    document.addEventListener('livewire:navigated', function () {
+    function applyToAll() {
         applyNoSpace(document.getElementById('code'));
+    }
+
+    applyToAll();
+
+    const observer = new MutationObserver(function () {
+        applyToAll();
     });
 
-    // Para cuando Livewire actualiza el DOM dinámicamente
-    document.addEventListener('livewire:updated', function () {
-        applyNoSpace(document.getElementById('code'));
-    });
+    observer.observe(document.body, { childList: true, subtree: true });
 });
+</script>
 </script>
