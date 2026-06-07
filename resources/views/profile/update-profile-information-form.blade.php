@@ -52,7 +52,7 @@
         <!-- Nombre -->
         <div class="col-span-6 sm:col-span-4">
             <x-label for="name" value="{{ __('Nombre') }}" />
-            <x-input id="name" type="text" class="mt-1 block w-full" wire:model="state.name" required autocomplete="name" maxlength="25" />
+            <x-input id="name" type="text" class="mt-1 block w-full" wire:model="state.name" required autocomplete="name" maxlength="32" />
             <x-input-error for="name" class="mt-2" />
         </div>
 
