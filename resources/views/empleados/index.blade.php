@@ -16,12 +16,9 @@
             .search-form input[type="text"] { width: 100% !important; }
             .action-btns { flex-direction: column !important; gap: 0.25rem !important; }
             .action-btns a, .action-btns button { width: 100% !important; text-align: center !important; }
-
-            /* Tabla ultra compacta */
-            table { font-size: 10px !important; width: 100% !important; }
-            td, th { padding: 3px 4px !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; max-width: 60px !important; }
-            th { font-size: 9px !important; letter-spacing: 0 !important; }
             .overflow-x-auto { overflow-x: auto !important; -webkit-overflow-scrolling: touch !important; }
+            .mobile-table { font-size: 11px !important; }
+            .mobile-table th, .mobile-table td { padding: 4px 6px !important; white-space: nowrap !important; }
         }
     </style>
 
@@ -123,7 +120,7 @@
 
                             @if($empleados->count() > 0)
                                 <div class="overflow-x-auto">
-                                    <table class="table-fixed w-full border bg-white shadow rounded text-gray-800">
+                                    <table class="table-fixed w-full border bg-white shadow rounded text-gray-800 mobile-table" style="min-width: 500px;">
                                         <colgroup>
                                             <col class="w-1/5">
                                             <col class="w-1/5">
@@ -232,7 +229,7 @@
 
                             @if($vehiculos->count() > 0)
                                 <div class="overflow-x-auto">
-                                    <table class="table-fixed w-full border bg-white shadow rounded text-gray-800">
+                                    <table class="table-fixed w-full border bg-white shadow rounded text-gray-800 mobile-table" style="min-width: 700px;">
                                         <colgroup>
                                             <col class="w-12">
                                             <col class="w-20">
