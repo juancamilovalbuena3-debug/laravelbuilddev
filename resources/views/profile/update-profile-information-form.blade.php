@@ -93,3 +93,32 @@
         </x-button>
     </x-slot>
 </x-form-section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    function applyNoSpace(input) {
+        if (!input) return;
+        input.addEventListener('keydown', function (e) {
+            if (e.key === ' ' || e.code === 'Space') {
+                e.preventDefault();
+            }
+        });
+        input.addEventListener('paste', function (e) {
+            e.preventDefault();
+            var pasted = (e.clipboardData || window.clipboardData).getData('text');
+            var cleaned = pasted.replace(/\s/g, '');
+            var start = this.selectionStart;
+            var end = this.selectionEnd;
+            this.value = this.value.substring(0, start) + cleaned + this.value.substring(end);
+            this.selectionStart = this.selectionEnd = start + cleaned.length;
+        });
+    }
+
+    applyNoSpace(document.getElementById('email'));
+
+    // Para Livewire: reaplicar cuando el DOM se actualice
+    document.addEventListener('livewire:navigated', function () {
+        applyNoSpace(document.getElementById('email'));
+    });
+});
+</script>
