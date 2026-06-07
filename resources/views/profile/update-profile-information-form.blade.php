@@ -52,7 +52,7 @@
         <!-- Nombre -->
         <div class="col-span-6 sm:col-span-4">
             <x-label for="name" value="{{ __('Nombre') }}" />
-            <x-input id="name" type="text" class="mt-1 block w-full" wire:model="state.name" required autocomplete="name" maxlength="24" />
+            <x-input id="name" type="text" class="mt-1 block w-full" wire:model="state.name" required autocomplete="name" maxlength="25" />
             <x-input-error for="name" class="mt-2" />
         </div>
 
@@ -111,12 +111,26 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    function applyNameRules(input) {
+        if (!input) return;
+        input.addEventListener('keydown', function (e) {
+            if ((e.key === ' ' || e.code === 'Space') && this.value.length === 0) {
+                e.preventDefault();
+            }
+        });
+        input.addEventListener('input', function () {
+            if (this.value.startsWith(' ')) {
+                this.value = this.value.trimStart();
+            }
+        });
+    }
+
     applyNoSpace(document.getElementById('email'));
-    applyNoSpace(document.getElementById('name'));
+    applyNameRules(document.getElementById('name'));
 
     document.addEventListener('livewire:navigated', function () {
         applyNoSpace(document.getElementById('email'));
-        applyNoSpace(document.getElementById('name'));
+        applyNameRules(document.getElementById('name'));
     });
 });
 </script>
