@@ -229,7 +229,7 @@
 
                             @if($vehiculos->count() > 0)
                                 <div class="overflow-x-auto">
-                                    <table class="table-fixed w-full border bg-white shadow rounded text-gray-800 mobile-table" style="min-width: 700px;">
+                                    <table class="table-fixed w-full border bg-white shadow rounded text-gray-800 mobile-table">
                                         <colgroup>
                                             <col class="w-12">
                                             <col class="w-20">
@@ -242,21 +242,21 @@
                                         </colgroup>
                                         <thead class="bg-gray-300">
                                             <tr>
-                                                <th class="px-4 py-2 border text-left">ID</th>
-                                                <th class="px-4 py-2 border text-left">Imagen</th>
+                                                <th class="px-4 py-2 border text-left hidden sm:table-cell">ID</th>
+                                                <th class="px-4 py-2 border text-left hidden sm:table-cell">Imagen</th>
                                                 <th class="px-4 py-2 border text-left">Tipo</th>
                                                 <th class="px-4 py-2 border text-left">Marca</th>
                                                 <th class="px-4 py-2 border text-left">Modelo</th>
                                                 <th class="px-4 py-2 border text-left">Precio</th>
-                                                <th class="px-4 py-2 border text-left">Descripción</th>
+                                                <th class="px-4 py-2 border text-left hidden sm:table-cell">Descripción</th>
                                                 <th class="px-4 py-2 border text-left">Acciones</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @foreach($vehiculos as $vehiculo)
                                                 <tr class="hover:bg-gray-50">
-                                                    <td class="border px-4 py-2">{{ $vehiculo->id }}</td>
-                                                    <td class="border px-4 py-2">
+                                                    <td class="border px-4 py-2 hidden sm:table-cell">{{ $vehiculo->id }}</td>
+                                                    <td class="border px-4 py-2 hidden sm:table-cell">
                                                         @if($vehiculo->imagen)
                                                             <img src="{{ asset('images/'.$vehiculo->imagen) }}" alt="Imagen" class="w-16 h-12 object-cover rounded">
                                                         @else
@@ -267,7 +267,7 @@
                                                     <td class="border px-4 py-2 truncate max-w-0" title="{{ $vehiculo->marca }}">{{ $vehiculo->marca }}</td>
                                                     <td class="border px-4 py-2">{{ $vehiculo->modelo }}</td>
                                                     <td class="border px-4 py-2">${{ number_format($vehiculo->precio, 2) }}</td>
-                                                    <td class="border px-4 py-2 truncate max-w-0" title="{{ $vehiculo->descripcion }}">{{ $vehiculo->descripcion }}</td>
+                                                    <td class="border px-4 py-2 truncate max-w-0 hidden sm:table-cell" title="{{ $vehiculo->descripcion }}">{{ $vehiculo->descripcion }}</td>
                                                     <td class="border px-4 py-2">
                                                         <div class="flex space-x-2 action-btns">
                                                             <a href="{{ route('vehiculos.edit', $vehiculo->id) }}"
