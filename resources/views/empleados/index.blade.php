@@ -5,29 +5,12 @@
         </h2>
     </x-slot>
 
-    <style>
-        @media (max-width: 640px) {
-            .layout-wrapper { flex-direction: column !important; }
-            .sidebar { width: 100% !important; border-right: none !important; border-bottom: 1px solid #e5e7eb; padding: 1rem !important; }
-            .sidebar ul { display: flex !important; flex-wrap: wrap !important; gap: 0.5rem !important; }
-            .main-content { padding: 0.5rem !important; }
-            .top-bar { flex-direction: column !important; align-items: flex-start !important; gap: 0.5rem !important; }
-            .search-form { flex-wrap: wrap !important; gap: 0.5rem !important; }
-            .search-form input[type="text"] { width: 100% !important; }
-            .action-btns { flex-direction: column !important; gap: 0.25rem !important; }
-            .action-btns a, .action-btns button { width: 100% !important; text-align: center !important; }
-            .overflow-x-auto { overflow-x: auto !important; -webkit-overflow-scrolling: touch !important; }
-            .mobile-table { font-size: 11px !important; }
-            .mobile-table th, .mobile-table td { padding: 4px 6px !important; white-space: nowrap !important; }
-        }
-    </style>
-
     <div class="py-12 bg-white min-h-screen">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg flex layout-wrapper">
+            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg flex">
 
                 <!-- Sidebar -->
-                <aside class="w-64 bg-gray-100/90 border-r p-6 sidebar">
+                <aside class="w-64 bg-gray-100/90 border-r p-6">
                     <h2 class="text-lg font-bold mb-4">Panel</h2>
                     <ul class="space-y-2">
                         <li><a href="{{ route('dashboard') }}" class="text-black font-semibold">Inicio</a></li>
@@ -44,7 +27,7 @@
                 </aside>
 
                 <!-- Contenido principal -->
-                <main class="flex-1 p-6 min-w-0 main-content">
+                <main class="flex-1 p-6 min-w-0">
                     <h1 class="text-2xl font-bold mb-6">Gestión de Empleados y Vehículos</h1>
 
                     @if(session('error'))
@@ -82,7 +65,7 @@
 
                         <!-- Tabla de empleados -->
                         <div x-show="tab === 'empleados'">
-                            <div class="flex justify-between items-center mb-4 top-bar">
+                            <div class="flex justify-between items-center mb-4">
                                 <h2 class="text-xl font-semibold">Lista de Empleados</h2>
                                 <div class="space-x-2">
                                     <a href="{{ route('empleados.export.pdf', ['busqueda' => request('tab') === 'empleados' ? request('busqueda') : '']) }}"
@@ -97,8 +80,8 @@
                             </div>
 
                             <!-- Buscador empleados -->
-                            <div class="flex justify-between items-center mb-6 top-bar">
-                                <form method="GET" action="{{ route('empleados.index') }}" class="flex space-x-2 search-form">
+                            <div class="flex justify-between items-center mb-6">
+                                <form method="GET" action="{{ route('empleados.index') }}" class="flex space-x-2">
                                     <input type="hidden" name="tab" value="empleados">
                                     <input type="text" name="busqueda" value="{{ request('tab') !== 'vehiculos' ? request('busqueda') : '' }}"
                                            placeholder="Buscar por nombre o correo"
@@ -120,7 +103,7 @@
 
                             @if($empleados->count() > 0)
                                 <div class="overflow-x-auto">
-                                    <table class="table-fixed w-full border bg-white shadow rounded text-gray-800 mobile-table" style="min-width: 500px;">
+                                    <table class="table-fixed w-full border bg-white shadow rounded text-gray-800">
                                         <colgroup>
                                             <col class="w-1/5">
                                             <col class="w-1/5">
@@ -143,11 +126,12 @@
                                                     <td class="border px-4 py-2 truncate">{{ $empleado->nombre }}</td>
                                                     <td class="border px-4 py-2 truncate">{{ $empleado->puesto }}</td>
                                                     <td class="border px-4 py-2">${{ number_format($empleado->salario, 2) }}</td>
-                                                    <td class="border px-4 py-2 truncate max-w-0" title="{{ $empleado->email }}">
+                                                    <td class="border px-4 py-2 truncate max-w-0"
+                                                        title="{{ $empleado->email }}">
                                                         {{ $empleado->email }}
                                                     </td>
                                                     <td class="border px-4 py-2">
-                                                        <div class="flex space-x-2 action-btns">
+                                                        <div class="flex space-x-2">
                                                             <a href="{{ route('empleados.edit', $empleado->id) }}"
                                                                class="bg-white hover:bg-gray-200 text-black px-3 py-1 rounded shadow font-semibold border transition">
                                                                 Editar
@@ -186,7 +170,7 @@
 
                         <!-- Tabla de vehículos -->
                         <div x-show="tab === 'vehiculos'">
-                            <div class="flex justify-between items-center mb-4 top-bar">
+                            <div class="flex justify-between items-center mb-4">
                                 <h2 class="text-xl font-semibold">Vehículos Publicados</h2>
                                 <div class="space-x-2">
                                     <a href="{{ route('vehiculos.export.pdf', ['busqueda' => request('busqueda'), 'tipo' => request('tipo')]) }}"
@@ -201,8 +185,8 @@
                             </div>
 
                             <!-- Buscador vehículos -->
-                            <div class="flex justify-between items-center mb-6 top-bar">
-                                <form method="GET" action="{{ route('empleados.index') }}" class="flex space-x-2 search-form">
+                            <div class="flex justify-between items-center mb-6">
+                                <form method="GET" action="{{ route('empleados.index') }}" class="flex space-x-2">
                                     <input type="hidden" name="tab" value="vehiculos">
                                     <input type="text" name="busqueda" value="{{ request('tab') === 'vehiculos' ? request('busqueda') : '' }}"
                                            placeholder="Buscar por marca o modelo"
@@ -229,7 +213,7 @@
 
                             @if($vehiculos->count() > 0)
                                 <div class="overflow-x-auto">
-                                    <table class="table-fixed w-full border bg-white shadow rounded text-gray-800 mobile-table">
+                                    <table class="table-fixed w-full border bg-white shadow rounded text-gray-800">
                                         <colgroup>
                                             <col class="w-12">
                                             <col class="w-20">
@@ -242,21 +226,21 @@
                                         </colgroup>
                                         <thead class="bg-gray-300">
                                             <tr>
-                                                <th class="px-4 py-2 border text-left hidden sm:table-cell">ID</th>
-                                                <th class="px-4 py-2 border text-left hidden sm:table-cell">Imagen</th>
+                                                <th class="px-4 py-2 border text-left">ID</th>
+                                                <th class="px-4 py-2 border text-left">Imagen</th>
                                                 <th class="px-4 py-2 border text-left">Tipo</th>
                                                 <th class="px-4 py-2 border text-left">Marca</th>
                                                 <th class="px-4 py-2 border text-left">Modelo</th>
                                                 <th class="px-4 py-2 border text-left">Precio</th>
-                                                <th class="px-4 py-2 border text-left hidden sm:table-cell">Descripción</th>
+                                                <th class="px-4 py-2 border text-left">Descripción</th>
                                                 <th class="px-4 py-2 border text-left">Acciones</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @foreach($vehiculos as $vehiculo)
                                                 <tr class="hover:bg-gray-50">
-                                                    <td class="border px-4 py-2 hidden sm:table-cell">{{ $vehiculo->id }}</td>
-                                                    <td class="border px-4 py-2 hidden sm:table-cell">
+                                                    <td class="border px-4 py-2">{{ $vehiculo->id }}</td>
+                                                    <td class="border px-4 py-2">
                                                         @if($vehiculo->imagen)
                                                             <img src="{{ asset('images/'.$vehiculo->imagen) }}" alt="Imagen" class="w-16 h-12 object-cover rounded">
                                                         @else
@@ -267,9 +251,9 @@
                                                     <td class="border px-4 py-2 truncate max-w-0" title="{{ $vehiculo->marca }}">{{ $vehiculo->marca }}</td>
                                                     <td class="border px-4 py-2">{{ $vehiculo->modelo }}</td>
                                                     <td class="border px-4 py-2">${{ number_format($vehiculo->precio, 2) }}</td>
-                                                    <td class="border px-4 py-2 truncate max-w-0 hidden sm:table-cell" title="{{ $vehiculo->descripcion }}">{{ $vehiculo->descripcion }}</td>
+                                                    <td class="border px-4 py-2 truncate max-w-0" title="{{ $vehiculo->descripcion }}">{{ $vehiculo->descripcion }}</td>
                                                     <td class="border px-4 py-2">
-                                                        <div class="flex space-x-2 action-btns">
+                                                        <div class="flex space-x-2">
                                                             <a href="{{ route('vehiculos.edit', $vehiculo->id) }}"
                                                                class="bg-white hover:bg-gray-200 text-black px-3 py-1 rounded shadow font-semibold border transition">
                                                                 Editar
