@@ -148,5 +148,10 @@ document.addEventListener('DOMContentLoaded', function () {
     document.addEventListener('livewire:navigated', function () {
         applyNoSpace(document.getElementById('code'));
     });
+
+    // Para cuando Livewire actualiza el DOM dinámicamente
+    document.addEventListener('livewire:updated', function () {
+        applyNoSpace(document.getElementById('code'));
+    });
 });
 </script>
