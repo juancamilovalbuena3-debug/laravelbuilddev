@@ -14,7 +14,6 @@
 
         @if (count($this->sessions) > 0)
             <div class="mt-5 space-y-6">
-                <!-- Otras sesiones del navegador -->
                 @foreach ($this->sessions as $session)
                     <div class="flex items-center">
                         <div>
@@ -61,7 +60,6 @@
             </x-action-message>
         </div>
 
-        <!-- Modal de confirmación para cerrar otras sesiones -->
         <x-dialog-modal wire:model.live="confirmingLogout">
             <x-slot name="title">
                 {{ __('Cerrar otras sesiones del navegador') }}
@@ -72,6 +70,7 @@
 
                 <div class="mt-4" x-data="{}" x-on:confirming-logout-other-browser-sessions.window="setTimeout(() => $refs.password.focus(), 250)">
                     <x-input type="password" class="mt-1 block w-3/4"
+                                id="logout_password"
                                 autocomplete="current-password"
                                 placeholder="{{ __('Contraseña') }}"
                                 x-ref="password"
@@ -96,3 +95,27 @@
         </x-dialog-modal>
     </x-slot>
 </x-action-section>
+
+<script>
+const observerLogout = new MutationObserver(function () {
+    const input = document.getElementById('logout_password');
+    if (input && !input._noSpaceApplied) {
+        input._noSpaceApplied = true;
+        input.addEventListener('keydown', function (e) {
+            if (e.key === ' ' || e.code === 'Space') {
+                e.preventDefault();
+            }
+        });
+        input.addEventListener('paste', function (e) {
+            e.preventDefault();
+            var pasted = (e.clipboardData || window.clipboardData).getData('text');
+            var cleaned = pasted.replace(/\s/g, '');
+            var start = this.selectionStart;
+            var end = this.selectionEnd;
+            this.value = this.value.substring(0, start) + cleaned + this.value.substring(end);
+            this.selectionStart = this.selectionEnd = start + cleaned.length;
+        });
+    }
+});
+observerLogout.observe(document.body, { childList: true, subtree: true });
+</script>
