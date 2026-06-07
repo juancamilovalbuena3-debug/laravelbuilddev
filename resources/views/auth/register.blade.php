@@ -89,46 +89,49 @@
         </x-authentication-card>
     </div>
 
-    <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const nameInput = document.getElementById('name');
-        if (nameInput) {
-            nameInput.addEventListener('keydown', function (e) {
-                if (e.key === ' ' || e.code === 'Space') {
-                    e.preventDefault();
-                }
-                const forbidden = /[0-9]/;
-                if (forbidden.test(e.key)) {
-                    e.preventDefault();
-                }
-            });
+   <script>
+document.addEventListener('DOMContentLoaded', function () {
+    const noSpaceInputs = ['name', 'email', 'password', 'password_confirmation'];
 
-            nameInput.addEventListener('paste', function (e) {
+    noSpaceInputs.forEach(function (id) {
+        const input = document.getElementById(id);
+        if (!input) return;
+
+        input.addEventListener('keydown', function (e) {
+            if (e.key === ' ' || e.code === 'Space') {
                 e.preventDefault();
-                var pasted = (e.clipboardData || window.clipboardData).getData('text');
-                var cleaned = pasted.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñÜü]/g, '');
-                var start = this.selectionStart;
-                var end = this.selectionEnd;
-                this.value = this.value.substring(0, start) + cleaned + this.value.substring(end);
-                this.selectionStart = this.selectionEnd = start + cleaned.length;
-            });
+            }
+        });
 
-            nameInput.addEventListener('input', function () {
+        input.addEventListener('paste', function (e) {
+            e.preventDefault();
+            var pasted = (e.clipboardData || window.clipboardData).getData('text');
+            var cleaned = id === 'name'
+                ? pasted.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñÜü]/g, '')
+                : pasted.replace(/\s/g, '');
+            var start = this.selectionStart;
+            var end = this.selectionEnd;
+            this.value = this.value.substring(0, start) + cleaned + this.value.substring(end);
+            this.selectionStart = this.selectionEnd = start + cleaned.length;
+        });
+
+        if (id === 'name') {
+            input.addEventListener('input', function () {
                 this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñÜü]/g, '');
             });
 
-            nameInput.closest('form').addEventListener('submit', function (e) {
+            input.closest('form').addEventListener('submit', function (e) {
                 const soloLetras = /^[A-Za-zÁÉÍÓÚáéíóúÑñÜü]+$/;
-                if (!soloLetras.test(nameInput.value)) {
+                if (!soloLetras.test(input.value)) {
                     e.preventDefault();
-                    nameInput.setCustomValidity('Solo se permiten letras, sin espacios ni números.');
-                    nameInput.reportValidity();
+                    input.setCustomValidity('Solo se permiten letras, sin espacios ni números.');
+                    input.reportValidity();
                 } else {
-                    nameInput.setCustomValidity('');
+                    input.setCustomValidity('');
                 }
             });
         }
     });
+});
 </script>
-
 </x-guest-layout>
