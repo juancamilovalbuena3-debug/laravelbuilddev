@@ -82,41 +82,61 @@
         </div>
     </div>
 
-    <script>
-        var emailInput = document.getElementById('email');
+  <script>
+    var emailInput = document.getElementById('email');
+    var passwordInput = document.getElementById('password');
 
-        emailInput.addEventListener('keydown', function (e) {
-            if (e.key === ' ' || e.code === 'Space') {
-                e.preventDefault();
-            }
-        });
-
-        emailInput.addEventListener('paste', function (e) {
+    // Bloqueo de espacios - EMAIL
+    emailInput.addEventListener('keydown', function (e) {
+        if (e.key === ' ' || e.code === 'Space') {
             e.preventDefault();
-            var pasted = (e.clipboardData || window.clipboardData).getData('text');
-            var cleaned = pasted.replace(/\s/g, '');
-            var start = this.selectionStart;
-            var end = this.selectionEnd;
-            this.value = this.value.substring(0, start) + cleaned + this.value.substring(end);
-            this.selectionStart = this.selectionEnd = start + cleaned.length;
-        });
-
-        emailInput.addEventListener('input', function () {
-            var pos = this.selectionStart;
-            var cleaned = this.value.replace(/\s/g, '');
-            if (cleaned !== this.value) {
-                this.value = cleaned;
-                this.selectionStart = this.selectionEnd = pos - 1;
-            }
-        });
-
-        document.getElementById('login-form').addEventListener('submit', function () {
-            emailInput.value = emailInput.value.trim();
-        });
-
-        function togglePassword() {
-            var input = document.getElementById('password');
-            input.type = input.type === 'password' ? 'text' : 'password';
         }
-    </script>
+    });
+
+    emailInput.addEventListener('paste', function (e) {
+        e.preventDefault();
+        var pasted = (e.clipboardData || window.clipboardData).getData('text');
+        var cleaned = pasted.replace(/\s/g, '');
+        var start = this.selectionStart;
+        var end = this.selectionEnd;
+        this.value = this.value.substring(0, start) + cleaned + this.value.substring(end);
+        this.selectionStart = this.selectionEnd = start + cleaned.length;
+    });
+
+    emailInput.addEventListener('input', function () {
+        var pos = this.selectionStart;
+        var cleaned = this.value.replace(/\s/g, '');
+        if (cleaned !== this.value) {
+            this.value = cleaned;
+            this.selectionStart = this.selectionEnd = pos - 1;
+        }
+    });
+
+    // Bloqueo de espacios - CONTRASEÑA
+    passwordInput.addEventListener('keydown', function (e) {
+        if (e.key === ' ' || e.code === 'Space') {
+            e.preventDefault();
+        }
+    });
+
+    passwordInput.addEventListener('paste', function (e) {
+        e.preventDefault();
+        var pasted = (e.clipboardData || window.clipboardData).getData('text');
+        var cleaned = pasted.replace(/\s/g, '');
+        var start = this.selectionStart;
+        var end = this.selectionEnd;
+        this.value = this.value.substring(0, start) + cleaned + this.value.substring(end);
+        this.selectionStart = this.selectionEnd = start + cleaned.length;
+    });
+
+    document.getElementById('login-form').addEventListener('submit', function () {
+        emailInput.value = emailInput.value.trim();
+        passwordInput.value = passwordInput.value.trim();
+    });
+
+    function togglePassword() {
+        var input = document.getElementById('password');
+        input.type = input.type === 'password' ? 'text' : 'password';
+    }
+</script>
 </x-guest-layout>
