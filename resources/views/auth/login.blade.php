@@ -82,7 +82,7 @@
         </div>
     </div>
 
-  <script>
+<script>
     var emailInput = document.getElementById('email');
     var passwordInput = document.getElementById('password');
 
@@ -127,6 +127,16 @@
         var end = this.selectionEnd;
         this.value = this.value.substring(0, start) + cleaned + this.value.substring(end);
         this.selectionStart = this.selectionEnd = start + cleaned.length;
+    });
+
+    // ← ESTO ES LO QUE FALTABA para Android Chrome
+    passwordInput.addEventListener('input', function () {
+        var pos = this.selectionStart;
+        var cleaned = this.value.replace(/\s/g, '');
+        if (cleaned !== this.value) {
+            this.value = cleaned;
+            this.selectionStart = this.selectionEnd = pos - 1;
+        }
     });
 
     document.getElementById('login-form').addEventListener('submit', function () {
