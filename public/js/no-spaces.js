@@ -12,7 +12,7 @@
     }
 
     function blockSpaces(input) {
-        if (input._noSpaces) return; // evitar duplicados
+        if (input._noSpaces) return;
         input._noSpaces = true;
 
         var interval = null;
@@ -23,13 +23,14 @@
             }
         });
 
-        input.addEventListener('keyup',          function () { limpiar(input); });
-        input.addEventListener('input',           function () { limpiar(input); });
-        input.addEventListener('compositionend',  function () { limpiar(input); });
-        input.addEventListener('change',          function () { limpiar(input); });
+        input.addEventListener('keyup',         function () { limpiar(input); });
+        input.addEventListener('input',          function () { limpiar(input); });
+        input.addEventListener('compositionend', function () { limpiar(input); });
+        input.addEventListener('change',         function () { limpiar(input); });
 
         input.addEventListener('focus', function () {
-            interval = setInterval(function () { limpiar(input); }, 100);
+            clearInterval(interval);
+            interval = setInterval(function () { limpiar(input); }, 50);
         });
 
         input.addEventListener('blur', function () {
@@ -46,18 +47,27 @@
             input.value = input.value.substring(0, start) + cleaned + input.value.substring(end);
             input.selectionStart = input.selectionEnd = start + cleaned.length;
         });
+
+        // Intervalo global permanente para Android Chrome
+        setInterval(function () {
+            if (/\s/.test(input.value)) {
+                limpiar(input);
+            }
+        }, 50);
     }
 
-    // Selector amplio: type, name e id comunes de login/register/perfil
     var SELECTOR = [
         'input[type="email"]',
         'input[type="password"]',
+        'input[type="text"]',
         'input[name="email"]',
         'input[name="password"]',
+        'input[name="name"]',
         'input[name="current_password"]',
         'input[name="password_confirmation"]',
         'input[id="email"]',
         'input[id="password"]',
+        'input[id="name"]',
         'input[id="current_password"]',
         'input[id="password_confirmation"]'
     ].join(',');
@@ -68,10 +78,8 @@
         });
     }
 
-    // Aplicar al cargar
     document.addEventListener('DOMContentLoaded', aplicarATodo);
 
-    // Observer para campos que aparezcan después (Livewire, modales, etc.)
     var observer = new MutationObserver(function (mutations) {
         mutations.forEach(function (mutation) {
             mutation.addedNodes.forEach(function (node) {
@@ -88,7 +96,6 @@
 
     observer.observe(document.body, { childList: true, subtree: true });
 
-    // Limpiar al submit en cualquier formulario
     document.addEventListener('submit', function (e) {
         var form = e.target;
         form.querySelectorAll(SELECTOR).forEach(function (input) {
