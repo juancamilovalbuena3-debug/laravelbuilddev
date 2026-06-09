@@ -158,6 +158,11 @@
                                                             Eliminar
                                                         </button>
                                                     </form>
+                                                    <!-- BOTÓN CREAR ACCESO MÓVIL -->
+                                                    <button onclick="abrirModalAcceso({{ $empleado->id }}, '{{ $empleado->email }}')"
+                                                            class="flex-1 bg-white hover:bg-green-50 text-green-700 px-3 py-1.5 rounded shadow font-semibold border border-green-200 text-sm transition">
+                                                        Acceso
+                                                    </button>
                                                 </div>
                                             </div>
                                         @endforeach
@@ -196,6 +201,11 @@
                                                                         Eliminar
                                                                     </button>
                                                                 </form>
+                                                                <!-- BOTÓN CREAR ACCESO DESKTOP -->
+                                                                <button onclick="abrirModalAcceso({{ $empleado->id }}, '{{ $empleado->email }}')"
+                                                                        class="bg-white hover:bg-green-50 text-green-700 px-3 py-1 rounded shadow font-semibold border border-green-200 text-xs transition">
+                                                                    Acceso
+                                                                </button>
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -386,6 +396,101 @@
             </div>
         </div>
     </div>
+
+    <!-- ===== MODAL CREAR ACCESO ===== -->
+    <div id="modalAcceso" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
+        <div style="background:white; padding:2rem; border-radius:8px; width:400px; max-width:90%;">
+            <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:1.2rem;">Crear acceso al sistema</h3>
+
+            <div style="margin-bottom:1rem;">
+                <label style="font-size:0.85rem; font-weight:600; display:block; margin-bottom:4px;">Correo electrónico</label>
+                <input type="email" id="acceso_email"
+                    style="width:100%; padding:0.5rem 0.75rem; border:1px solid #d1d5db; border-radius:6px; font-size:0.875rem; box-sizing:border-box;">
+            </div>
+
+            <div style="margin-bottom:1.2rem;">
+                <label style="font-size:0.85rem; font-weight:600; display:block; margin-bottom:4px;">Contraseña</label>
+                <input type="password" id="acceso_password"
+                    style="width:100%; padding:0.5rem 0.75rem; border:1px solid #d1d5db; border-radius:6px; font-size:0.875rem; box-sizing:border-box;">
+            </div>
+
+            <div id="acceso_error" style="display:none; color:#dc2626; font-size:0.8rem; margin-bottom:0.75rem;"></div>
+            <div id="acceso_success" style="display:none; color:#16a34a; font-size:0.8rem; margin-bottom:0.75rem;"></div>
+
+            <div style="display:flex; gap:0.5rem; justify-content:flex-end;">
+                <button onclick="cerrarModalAcceso()"
+                    style="padding:0.5rem 1rem; border:1px solid #d1d5db; border-radius:6px; background:white; font-size:0.875rem; font-weight:600; cursor:pointer;">
+                    Cancelar
+                </button>
+                <button onclick="guardarAcceso()"
+                    style="padding:0.5rem 1rem; background:#000; color:white; border:none; border-radius:6px; font-size:0.875rem; font-weight:600; cursor:pointer;">
+                    Crear acceso
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let _accesoEmpleadoId = null;
+
+        function abrirModalAcceso(id, email) {
+            _accesoEmpleadoId = id;
+            document.getElementById('acceso_email').value = email || '';
+            document.getElementById('acceso_password').value = '';
+            document.getElementById('acceso_error').style.display = 'none';
+            document.getElementById('acceso_success').style.display = 'none';
+            document.getElementById('modalAcceso').style.display = 'flex';
+        }
+
+        function cerrarModalAcceso() {
+            document.getElementById('modalAcceso').style.display = 'none';
+        }
+
+        async function guardarAcceso() {
+            const email = document.getElementById('acceso_email').value.trim();
+            const password = document.getElementById('acceso_password').value;
+            const errorDiv = document.getElementById('acceso_error');
+            const successDiv = document.getElementById('acceso_success');
+
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+
+            if (!email || !password) {
+                errorDiv.textContent = 'Por favor completa todos los campos.';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            try {
+                const response = await fetch('{{ route("empleados.crearAcceso") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({
+                        empleado_id: _accesoEmpleadoId,
+                        email: email,
+                        password: password
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    successDiv.textContent = '✅ Acceso creado correctamente.';
+                    successDiv.style.display = 'block';
+                    setTimeout(() => cerrarModalAcceso(), 1500);
+                } else {
+                    errorDiv.textContent = data.message || 'Error al crear el acceso.';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (e) {
+                errorDiv.textContent = 'Error de conexión. Inténtalo de nuevo.';
+                errorDiv.style.display = 'block';
+            }
+        }
+    </script>
 
     <script src="//unpkg.com/alpinejs" defer></script>
 </x-app-layout>
