@@ -29,6 +29,7 @@ Route::middleware([
         Route::resource('empleados', EmpleadoController::class);
         Route::get('/empleados/export/pdf', [EmpleadoController::class, 'exportPdf'])->name('empleados.export.pdf');
         Route::get('/empleados/export/csv', [EmpleadoController::class, 'exportCsv'])->name('empleados.export.csv');
+        Route::post('/empleados/crear-acceso', [EmpleadoController::class, 'crearAcceso'])->name('empleados.crearAcceso');
     });
 
     /* ========================
