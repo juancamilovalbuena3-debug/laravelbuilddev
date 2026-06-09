@@ -960,6 +960,8 @@
 
         </script>
 
+        <script src="{{ asset('js/no-spaces.js') }}"></script>
+
     </body>
 
 </html>
