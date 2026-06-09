@@ -23,7 +23,7 @@
                 </a>
             </div>
 
-            <x-validation-errors class="mb-4" />
+         <x-validation-errors class="mb-4" />
 
             @if (session('status'))
                 <div class="mb-4 font-medium text-sm text-green-600">
@@ -36,7 +36,7 @@
                 <div>
                     <x-label for="email" value="{{ __('Correo electrónico') }}" style="color: white;" />
                     <x-input id="email" class="block mt-1 w-full"
-                             type="email" name="email"
+                             type="text" inputmode="email" name="email"
                              :value="old('email')" required autofocus
                              autocomplete="username" />
                 </div>
@@ -86,58 +86,60 @@
     var emailInput = document.getElementById('email');
     var passwordInput = document.getElementById('password');
 
-    // Bloqueo de espacios - EMAIL
-    emailInput.addEventListener('keydown', function (e) {
-        if (e.key === ' ' || e.code === 'Space') {
+    function limpiar(input) {
+        var pos = input.selectionStart;
+        var cleaned = input.value.replace(/\s/g, '');
+        if (cleaned !== input.value) {
+            input.value = cleaned;
+            try {
+                input.selectionStart = input.selectionEnd = Math.max(0, pos - 1);
+            } catch(e) {}
+        }
+    }
+
+    function aplicarBloqueo(input) {
+        var interval = null;
+
+        input.addEventListener('keydown', function (e) {
+            if (e.key === ' ' || e.code === 'Space' || e.keyCode === 32) {
+                e.preventDefault();
+            }
+        });
+
+        input.addEventListener('keyup',         function () { limpiar(input); });
+        input.addEventListener('input',          function () { limpiar(input); });
+        input.addEventListener('compositionend', function () { limpiar(input); });
+        input.addEventListener('change',         function () { limpiar(input); });
+
+        input.addEventListener('focus', function () {
+            clearInterval(interval);
+            interval = setInterval(function () { limpiar(input); }, 50);
+        });
+
+        input.addEventListener('blur', function () {
+            clearInterval(interval);
+            limpiar(input);
+        });
+
+        setInterval(function () {
+            if (/\s/.test(input.value)) {
+                limpiar(input);
+            }
+        }, 50);
+
+        input.addEventListener('paste', function (e) {
             e.preventDefault();
-        }
-    });
+            var pasted = (e.clipboardData || window.clipboardData).getData('text');
+            var cleaned = pasted.replace(/\s/g, '');
+            var start = input.selectionStart;
+            var end   = input.selectionEnd;
+            input.value = input.value.substring(0, start) + cleaned + input.value.substring(end);
+            input.selectionStart = input.selectionEnd = start + cleaned.length;
+        });
+    }
 
-    emailInput.addEventListener('paste', function (e) {
-        e.preventDefault();
-        var pasted = (e.clipboardData || window.clipboardData).getData('text');
-        var cleaned = pasted.replace(/\s/g, '');
-        var start = this.selectionStart;
-        var end = this.selectionEnd;
-        this.value = this.value.substring(0, start) + cleaned + this.value.substring(end);
-        this.selectionStart = this.selectionEnd = start + cleaned.length;
-    });
-
-    emailInput.addEventListener('input', function () {
-        var pos = this.selectionStart;
-        var cleaned = this.value.replace(/\s/g, '');
-        if (cleaned !== this.value) {
-            this.value = cleaned;
-            this.selectionStart = this.selectionEnd = pos - 1;
-        }
-    });
-
-    // Bloqueo de espacios - CONTRASEÑA
-    passwordInput.addEventListener('keydown', function (e) {
-        if (e.key === ' ' || e.code === 'Space') {
-            e.preventDefault();
-        }
-    });
-
-    passwordInput.addEventListener('paste', function (e) {
-        e.preventDefault();
-        var pasted = (e.clipboardData || window.clipboardData).getData('text');
-        var cleaned = pasted.replace(/\s/g, '');
-        var start = this.selectionStart;
-        var end = this.selectionEnd;
-        this.value = this.value.substring(0, start) + cleaned + this.value.substring(end);
-        this.selectionStart = this.selectionEnd = start + cleaned.length;
-    });
-
-    // ← ESTO ES LO QUE FALTABA para Android Chrome
-    passwordInput.addEventListener('input', function () {
-        var pos = this.selectionStart;
-        var cleaned = this.value.replace(/\s/g, '');
-        if (cleaned !== this.value) {
-            this.value = cleaned;
-            this.selectionStart = this.selectionEnd = pos - 1;
-        }
-    });
+    aplicarBloqueo(emailInput);
+    aplicarBloqueo(passwordInput);
 
     document.getElementById('login-form').addEventListener('submit', function () {
         emailInput.value = emailInput.value.trim();
