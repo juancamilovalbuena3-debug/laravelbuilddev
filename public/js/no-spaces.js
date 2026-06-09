@@ -1,37 +1,49 @@
 document.addEventListener('DOMContentLoaded', function () {
+
     function blockSpaces(input) {
+        var interval = null;
+
+        function limpiar() {
+            var pos = input.selectionStart;
+            var cleaned = input.value.replace(/\s/g, '');
+            if (cleaned !== input.value) {
+                input.value = cleaned;
+                try {
+                    input.selectionStart = input.selectionEnd = Math.max(0, pos - 1);
+                } catch(e) {}
+            }
+        }
+
+        // Todos los eventos posibles
         input.addEventListener('keydown', function (e) {
-            if (e.key === ' ' || e.code === 'Space') {
+            if (e.key === ' ' || e.code === 'Space' || e.keyCode === 32) {
                 e.preventDefault();
             }
+        });
+
+        input.addEventListener('keyup', limpiar);
+        input.addEventListener('input', limpiar);
+        input.addEventListener('compositionend', limpiar);
+        input.addEventListener('change', limpiar);
+
+        // Intervalo activo solo cuando el input tiene foco (clave para Android)
+        input.addEventListener('focus', function () {
+            interval = setInterval(limpiar, 100);
+        });
+
+        input.addEventListener('blur', function () {
+            clearInterval(interval);
+            limpiar();
         });
 
         input.addEventListener('paste', function (e) {
             e.preventDefault();
             var pasted = (e.clipboardData || window.clipboardData).getData('text');
             var cleaned = pasted.replace(/\s/g, '');
-            var start = this.selectionStart;
-            var end = this.selectionEnd;
-            this.value = this.value.substring(0, start) + cleaned + this.value.substring(end);
-            this.selectionStart = this.selectionEnd = start + cleaned.length;
-        });
-
-        input.addEventListener('input', function () {
-            var pos = this.selectionStart;
-            var cleaned = this.value.replace(/\s/g, '');
-            if (cleaned !== this.value) {
-                this.value = cleaned;
-                this.selectionStart = this.selectionEnd = Math.max(0, pos - 1);
-            }
-        });
-
-        input.addEventListener('compositionend', function () {
-            var pos = this.selectionStart;
-            var cleaned = this.value.replace(/\s/g, '');
-            if (cleaned !== this.value) {
-                this.value = cleaned;
-                this.selectionStart = this.selectionEnd = Math.max(0, pos - 1);
-            }
+            var start = input.selectionStart;
+            var end = input.selectionEnd;
+            input.value = input.value.substring(0, start) + cleaned + input.value.substring(end);
+            input.selectionStart = input.selectionEnd = start + cleaned.length;
         });
     }
 
@@ -46,4 +58,5 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     });
+
 });
