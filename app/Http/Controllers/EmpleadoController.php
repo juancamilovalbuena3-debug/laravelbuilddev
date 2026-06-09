@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Empleado;
 use App\Models\Vehiculo;
+use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Hash;
 
 class EmpleadoController extends Controller
 {
@@ -275,5 +277,28 @@ class EmpleadoController extends Controller
         $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
 
         return $response;
+    }
+
+    /**
+     * Crear acceso (usuario) para un empleado existente
+     */
+    public function crearAcceso(Request $request)
+    {
+        $request->validate([
+            'empleado_id' => 'required|exists:empleados,id',
+            'email'       => 'required|email|unique:users,email',
+            'password'    => 'required|min:6',
+        ]);
+
+        $empleado = Empleado::findOrFail($request->empleado_id);
+
+        User::create([
+            'name'     => $empleado->nombre,
+            'email'    => $request->email,
+            'password' => Hash::make($request->password),
+            'role'     => 'empleado',
+        ]);
+
+        return response()->json(['message' => 'Acceso creado correctamente']);
     }
 }
