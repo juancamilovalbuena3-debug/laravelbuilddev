@@ -285,7 +285,7 @@
             const valor = parseFloat(str);
             if (!str)                       { setError('precio', 'error-precio', 'El precio es obligatorio.');                return false; }
             if (isNaN(valor) || valor <= 0) { setError('precio', 'error-precio', 'El precio debe ser mayor a cero.');         return false; }
-            if (valor < 1000000)            { setError('precio', 'error-precio', 'El precio mínimo permitido es $1,000,000.'); return false; }
+            if (valor < 5000000)            { setError('precio', 'error-precio', 'El precio mínimo permitido es $5,000,000.'); return false; }
             if (valor > 9999999999)         { setError('precio', 'error-precio', 'El precio ingresado es demasiado alto.');   return false; }
             setError('precio', 'error-precio', '');
             return true;
