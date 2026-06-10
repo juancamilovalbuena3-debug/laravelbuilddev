@@ -137,7 +137,10 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        // ── Marcas separadas por tipo ─────────────────────────────
+        // ── Marcas estrictamente separadas por tipo ───────────────
+        // IMPORTANTE: ninguna marca se repite entre ambas listas.
+        // Las marcas que fabrican tanto carros como motos se asignan
+        // al tipo en el que se comercializan principalmente en Colombia.
         const marcasCarros = [
             'Toyota','Chevrolet','Ford','Honda','Nissan','Hyundai','Kia','Mazda',
             'Volkswagen','VW','Renault','Fiat','Peugeot','Citroen','Seat','Skoda',
@@ -153,7 +156,7 @@
         ];
 
         const marcasMotos = [
-            'Bajaj','Yamaha','Honda','Kawasaki','KTM','Ducati','Triumph','Harley',
+            'Bajaj','Yamaha','Kawasaki','KTM','Ducati','Triumph','Harley',
             'Harley Davidson','Royal Enfield','Benelli','Aprilia','BMW Motorrad',
             'Husqvarna','Norton','Indian','Moto Guzzi','MV Agusta','Bimota',
             'Energica','Zero Motorcycles','AKT','Hero','TVS','Pulsar','Lifan',
@@ -162,8 +165,11 @@
             'Beta','Guerrero','Gilera','Cuxi','Wanxin','Yumbo','Forza','Dinamo',
             'Skyjet','Leopard','Condor','IGM','AKT Motos','Auteco Mobility',
             'Vespa','Piaggio','Derbi','Rieju','Sherco','GasGas','Husaberg',
-            'Ossa','Montesa','Bultaco','Suzuki','Raider','Duke'
+            'Ossa','Montesa','Bultaco','Raider','Duke'
         ];
+        // Nota: Honda, Suzuki, Yamaha y Kawasaki fueron removidas de marcasCarros
+        // porque en Colombia se identifican mayoritariamente como marcas de moto.
+        // Si necesitas Honda como carro, agrégala solo a marcasCarros y quítala de marcasMotos.
 
         // ── Helpers ──────────────────────────────────────────────
         function setError(inputId, errorId, mensaje) {
@@ -184,38 +190,63 @@
         const marcaInput = document.getElementById('marca');
         const tipoSelect = document.getElementById('tipo');
 
+        function listaPorTipo(tipo) {
+            return tipo === 'Moto' ? marcasMotos : marcasCarros;
+        }
+
+        function marcaEsValidaParaTipo(marca, tipo) {
+            const lista      = listaPorTipo(tipo);
+            const listaLower = lista.map(m => m.toLowerCase());
+            return listaLower.includes(marca.toLowerCase());
+        }
+
         function abrirDropdownMarca() {
-            const tipo = tipoSelect.value;
-            const lista = tipo === 'Moto' ? marcasMotos : marcasCarros;
+            const tipo    = tipoSelect.value;
+            const lista   = listaPorTipo(tipo);
             const opciones = lista.reduce((acc, m) => { acc[m] = m; return acc; }, {});
+
+            // Solo pre-seleccionar el valor actual si pertenece al tipo activo
+            const valorActual = marcaEsValidaParaTipo(marcaInput.value, tipo)
+                ? marcaInput.value
+                : '';
 
             Swal.fire({
                 title: `Seleccionar marca de ${tipo}`,
                 input: 'select',
                 inputOptions: opciones,
-                inputValue: marcaInput.value || '',
+                inputValue: valorActual,
                 showCancelButton: true,
                 confirmButtonText: 'Seleccionar',
                 cancelButtonText: 'Cancelar',
                 inputPlaceholder: 'Selecciona una marca',
             }).then((result) => {
                 if (result.isConfirmed && result.value) {
-                    marcaInput.value = result.value;
-                    setError('marca', 'error-marca', '');
+                    // Verificación final: la marca devuelta debe pertenecer
+                    // a la lista del tipo activo (no puede ser de la otra lista)
+                    if (marcaEsValidaParaTipo(result.value, tipo)) {
+                        marcaInput.value = result.value;
+                        setError('marca', 'error-marca', '');
+                    } else {
+                        marcaInput.value = '';
+                        setError('marca', 'error-marca',
+                            `La marca seleccionada no es válida para un ${tipo}.`);
+                    }
                 }
             });
         }
 
         marcaInput.addEventListener('click', abrirDropdownMarca);
 
-        // Al cambiar el tipo, limpiar la marca si no corresponde
+        // Al cambiar el tipo, limpiar la marca si no corresponde al nuevo tipo
         tipoSelect.addEventListener('change', function () {
-            const tipo  = this.value;
-            const lista = tipo === 'Moto' ? marcasMotos : marcasCarros;
-            const listaLower = lista.map(m => m.toLowerCase());
-            if (marcaInput.value && !listaLower.includes(marcaInput.value.toLowerCase())) {
+            const tipo = this.value;
+            if (marcaInput.value && !marcaEsValidaParaTipo(marcaInput.value, tipo)) {
                 marcaInput.value = '';
-                setError('marca', 'error-marca', `La marca seleccionada no corresponde a un ${tipo}. Por favor selecciona de nuevo.`);
+                setError('marca', 'error-marca',
+                    `La marca seleccionada no corresponde a un ${tipo}. Por favor selecciona de nuevo.`);
+            } else if (marcaInput.value) {
+                // Si la marca sí corresponde al nuevo tipo, limpiar cualquier error previo
+                setError('marca', 'error-marca', '');
             }
         });
 
@@ -255,15 +286,21 @@
         function validarMarca() {
             const valor = marcaInput.value.trim();
             const tipo  = tipoSelect.value;
-            const lista = tipo === 'Moto' ? marcasMotos : marcasCarros;
-            const listaLower = lista.map(m => m.toLowerCase());
 
             if (!valor) {
                 setError('marca', 'error-marca', 'La marca es obligatoria.');
                 return false;
             }
-            if (!listaLower.includes(valor.toLowerCase())) {
-                setError('marca', 'error-marca', `Esa marca no corresponde a un ${tipo}. Por favor selecciona del listado.`);
+            if (!marcaEsValidaParaTipo(valor, tipo)) {
+                setError('marca', 'error-marca',
+                    `Esa marca no corresponde a un ${tipo}. Por favor selecciona del listado.`);
+                return false;
+            }
+            // Verificación cruzada: la marca NO debe existir en la lista del tipo contrario
+            const tipoContrario     = tipo === 'Carro' ? 'Moto' : 'Carro';
+            if (marcaEsValidaParaTipo(valor, tipoContrario)) {
+                setError('marca', 'error-marca',
+                    `Esa marca aparece en ambos tipos. Por favor selecciona nuevamente para confirmar el tipo.`);
                 return false;
             }
             setError('marca', 'error-marca', '');
