@@ -643,51 +643,93 @@
             return ok;
         }
 
-        // ── DIRECCIÓN: sin pegado, sin repetidos, formato colombiano ─────────
-        function validarDireccion() {
-            const el  = document.getElementById('inp_dir');
-            const val = el.value;
+      // ── DIRECCIÓN: sin pegado, sin repetidos, formato colombiano ─────────
+function validarDireccion() {
+    const el  = document.getElementById('inp_dir');
+    let   val = el.value;
 
-            // Bloquear caracteres repetidos consecutivos (4 o más iguales)
-            if (/(.)\1{3,}/.test(val)) {
-                el.value = val.slice(0, -1);
-                return false;
-            }
+    // Bloquear caracteres repetidos consecutivos (4 o más iguales)
+    if (/(.)\1{3,}/.test(val)) {
+        el.value = val.slice(0, -1);
+        return false;
+    }
 
-            const trim = val.trim();
-            if (!trim) { limpiarMensaje('err-dir', 'ok-dir'); return false; }
+    // Bloquear si ya contiene norte/sur/este/oeste como palabra completa:
+    // elimina desde donde empieza esa palabra hasta el final
+    const matchPunto = val.match(/\b(norte|sur|este|oeste)\b.*/i);
+    if (matchPunto) {
+        el.value = val.slice(0, matchPunto.index + matchPunto[1].length);
+        val = el.value;
+        // Bloquear además cualquier tecla adicional mediante flag
+        el.dataset.bloqueado = 'true';
+    } else {
+        el.dataset.bloqueado = 'false';
+    }
 
-            if (trim.length < 10) {
-                marcarCampo(el, false);
-                mostrarError('err-dir', 'ok-dir');
-                return false;
-            }
-            // Solo números → inválido
-            if (/^[\d\s\-#]+$/.test(trim)) {
-                marcarCampo(el, false);
-                mostrarError('err-dir', 'ok-dir');
-                return false;
-            }
-            // Una sola palabra sin números → inválido
-            if (trim.split(' ').length < 2) {
-                marcarCampo(el, false);
-                mostrarError('err-dir', 'ok-dir');
-                return false;
-            }
+    const trim = val.trim();
+    if (!trim) { limpiarMensaje('err-dir', 'ok-dir'); return false; }
 
-            // Patrón 1: formato # típico colombiano (Calle 15 # 30-45)
-            const tieneFormato = /\d+\s*#\s*\d+[\-–]\d+/.test(trim);
+    if (trim.length < 10) {
+        marcarCampo(el, false);
+        mostrarError('err-dir', 'ok-dir');
+        return false;
+    }
+    // Solo números → inválido
+    if (/^[\d\s\-#]+$/.test(trim)) {
+        marcarCampo(el, false);
+        mostrarError('err-dir', 'ok-dir');
+        return false;
+    }
+    // Una sola palabra sin números → inválido
+    if (trim.split(' ').length < 2) {
+        marcarCampo(el, false);
+        mostrarError('err-dir', 'ok-dir');
+        return false;
+    }
 
-            // Patrón 2: empieza con palabra clave de dirección
-            const palabrasClave = /^(calle|carrera|avenida|diagonal|transversal|circular|autopista|kilometro|km|cl\.?|cr\.?|cra\.?|kra\.?|cll\.?|av\.?|dg\.?|tv\.?|mz\.?|bloque|torre|manzana|barrio|vereda|sector|conjunto|urb\.?|urbanizacion|finca|hacienda|corregimiento|municipio)\s/i;
-            const empiezaConClave = palabrasClave.test(trim);
+    // Longitud máxima razonable
+    if (trim.length > 80) {
+        marcarCampo(el, false);
+        mostrarError('err-dir', 'ok-dir');
+        return false;
+    }
 
-            const ok = tieneFormato || empiezaConClave;
-            marcarCampo(el, ok);
-            ok ? mostrarOk('err-dir', 'ok-dir') : mostrarError('err-dir', 'ok-dir');
-            return ok;
+    // Detectar secuencias de 6+ consonantes seguidas (texto sin sentido)
+    if (/[bcdfghjklmnñpqrstvwxyz]{6,}/i.test(trim.replace(/\s/g, ''))) {
+        marcarCampo(el, false);
+        mostrarError('err-dir', 'ok-dir');
+        return false;
+    }
+
+    // Detectar palabras largas sin vocales (basura)
+    const palabras = trim.split(/\s+/);
+    const tienePalabraRara = palabras.some(p => {
+        if (/^[\d#\-]+$/.test(p)) return false;
+        const soloLetras = p.replace(/[^a-záéíóúüñA-ZÁÉÍÓÚÜÑ]/g, '');
+        if (soloLetras.length > 12) {
+            const vocales = (soloLetras.match(/[aeiouáéíóúü]/gi) || []).length;
+            return vocales < 2;
         }
+        return false;
+    });
+    if (tienePalabraRara) {
+        marcarCampo(el, false);
+        mostrarError('err-dir', 'ok-dir');
+        return false;
+    }
 
+    // Patrón 1: formato # típico colombiano (Calle 15 # 30-45)
+    const tieneFormato = /\d+\s*#\s*\d+[\-–]\d+/.test(trim);
+
+    // Patrón 2: empieza con palabra clave de dirección
+    const palabrasClave = /^(calle|carrera|avenida|diagonal|transversal|circular|autopista|kilometro|km|cl\.?|cr\.?|cra\.?|kra\.?|cll\.?|av\.?|dg\.?|tv\.?|mz\.?|bloque|torre|manzana|barrio|vereda|sector|conjunto|urb\.?|urbanizacion|finca|hacienda|corregimiento|municipio)\s/i;
+    const empiezaConClave = palabrasClave.test(trim);
+
+    const ok = tieneFormato || empiezaConClave;
+    marcarCampo(el, ok);
+    ok ? mostrarOk('err-dir', 'ok-dir') : mostrarError('err-dir', 'ok-dir');
+    return ok;
+}
         let firmaRealizada = false;
         function validarFirma() {
             const ok = firmaRealizada;
