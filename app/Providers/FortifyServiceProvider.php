@@ -27,11 +27,11 @@ class FortifyServiceProvider extends ServiceProvider
 
         RateLimiter::for('login', function (Request $request) {
             $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
-            return Limit::perMinutes(5)->by($throttleKey)->response(function (Request $request, array $headers) {
+            return Limit::perMinute(3)->by($throttleKey)->response(function (Request $request, array $headers) {
                 $seconds = $headers['Retry-After'] ?? 300;
                 $minutes = ceil($seconds / 60);
                 return redirect()->route('login')->withErrors([
-                    'email' => __('auth.throttle', ['minutes' => $minutes, 'seconds' => $seconds]),
+                    'email' => 'Demasiados intentos fallidos. Por favor espera '.$minutes.' minuto(s) antes de intentarlo de nuevo.',
                 ]);
             });
         });
