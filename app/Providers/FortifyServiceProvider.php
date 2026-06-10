@@ -1,7 +1,5 @@
 <?php
-
 namespace App\Providers;
-
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
 use App\Actions\Fortify\UpdateUserPassword;
@@ -13,20 +11,12 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Laravel\Fortify\Actions\RedirectIfTwoFactorAuthenticatable;
 use Laravel\Fortify\Fortify;
-
 class FortifyServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
         //
     }
-
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
         Fortify::createUsersUsing(CreateNewUser::class);
@@ -37,8 +27,13 @@ class FortifyServiceProvider extends ServiceProvider
 
         RateLimiter::for('login', function (Request $request) {
             $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
-
-            return Limit::perMinute(5)->by($throttleKey);
+            return Limit::perMinutes(5)->by($throttleKey)->response(function (Request $request, array $headers) {
+                $seconds = $headers['Retry-After'] ?? 300;
+                $minutes = ceil($seconds / 60);
+                return redirect()->route('login')->withErrors([
+                    'email' => __('auth.throttle', ['minutes' => $minutes, 'seconds' => $seconds]),
+                ]);
+            });
         });
 
         RateLimiter::for('two-factor', function (Request $request) {
