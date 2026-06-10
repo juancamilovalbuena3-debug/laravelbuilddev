@@ -292,7 +292,7 @@
 
         let chartInstances = {};
 
-        // ── Marcas separadas por tipo (mismas listas que crear/editar) ──
+        // ── Marcas separadas por tipo ─────────────────────────────
         const marcasCarros = [
             'Toyota','Chevrolet','Ford','Honda','Nissan','Hyundai','Kia','Mazda',
             'Volkswagen','VW','Renault','Fiat','Peugeot','Citroen','Seat','Skoda',
@@ -320,20 +320,18 @@
             'Ossa','Montesa','Bultaco','Raider','Duke'
         ];
 
-        // Opciones combinadas: primero carros, luego motos, con separadores visuales
         const opcionesVehiculo = {};
         opcionesVehiculo['── Carros ──'] = '── Carros ──';
         marcasCarros.forEach(m => { opcionesVehiculo[m] = m; });
         opcionesVehiculo['── Motos ──'] = '── Motos ──';
         marcasMotos.forEach(m => { opcionesVehiculo[m] = m; });
 
-        // Todas las marcas válidas (para validar que no elija un separador)
         const todasLasMarcas = [...marcasCarros, ...marcasMotos].map(m => m.toLowerCase());
 
         document.addEventListener('DOMContentLoaded', () => {
             actualizarGraficasInicial();
 
-            // ── Bloqueo de pegado y espacios en buscarInput ───────
+            // ── buscarInput: cédula (solo números) o nombre (letras) ──
             const buscarEl = document.getElementById('buscarInput');
 
             buscarEl.addEventListener('paste', function(e) {
@@ -341,14 +339,38 @@
             });
 
             buscarEl.addEventListener('keydown', function(e) {
-                if (e.key === ' ' && this.selectionStart === 0) e.preventDefault();
+                const valor      = this.value;
+                const cursor     = this.selectionStart;
+                // Detectar si el contenido actual es solo dígitos
+                // (o está vacío, en cuyo caso aún no sabemos el modo)
+                const soloNumeros = /^\d*$/.test(valor);
+
+                if (e.key === ' ') {
+                    // Modo cédula: bloquear espacio siempre
+                    if (soloNumeros) {
+                        e.preventDefault();
+                        return;
+                    }
+                    // Modo nombre: bloquear espacio al inicio o si el carácter
+                    // inmediatamente anterior al cursor ya es un espacio
+                    if (cursor === 0 || valor[cursor - 1] === ' ') {
+                        e.preventDefault();
+                    }
+                }
             });
 
+            // Limpiar espacios dobles que puedan quedar por autocompletado
             buscarEl.addEventListener('input', function() {
-                if (this.value.startsWith(' ')) {
-                    const pos = this.selectionStart - 1;
+                const soloNumeros = /^\d*$/.test(this.value.replace(/ /g, ''));
+                if (soloNumeros && this.value.includes(' ')) {
+                    // Si terminó siendo cédula, quitar cualquier espacio que se haya colado
+                    const pos = this.selectionStart;
+                    this.value = this.value.replace(/ /g, '');
+                    this.setSelectionRange(Math.max(0, pos - 1), Math.max(0, pos - 1));
+                } else if (this.value.startsWith(' ')) {
+                    const pos = this.selectionStart;
                     this.value = this.value.trimStart();
-                    this.setSelectionRange(Math.max(0, pos), Math.max(0, pos));
+                    this.setSelectionRange(Math.max(0, pos - 1), Math.max(0, pos - 1));
                 }
             });
 
@@ -370,7 +392,6 @@
                     cancelButtonText: 'Cancelar',
                     inputPlaceholder: 'Selecciona una marca',
                     preConfirm: (valor) => {
-                        // Rechazar si elige un separador
                         if (!todasLasMarcas.includes(valor.toLowerCase())) {
                             Swal.showValidationMessage('Por favor selecciona una marca válida.');
                             return false;
