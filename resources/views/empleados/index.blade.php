@@ -112,7 +112,7 @@
                                 <div class="flex flex-col gap-3 mb-5 sm:flex-row sm:justify-between sm:items-center">
                                     <form method="GET" action="{{ route('empleados.index') }}" class="flex flex-col gap-2 sm:flex-row sm:items-center">
                                         <input type="hidden" name="tab" value="empleados">
-                                        <input id="busqueda_empleados" type="text" name="busqueda" value="{{ request('tab') !== 'vehiculos' ? request('busqueda') : '' }}"
+                                        <input type="text" name="busqueda" value="{{ request('tab') !== 'vehiculos' ? request('busqueda') : '' }}"
                                                placeholder="Buscar por nombre o correo"
                                                class="border rounded px-3 py-2 text-sm w-full sm:w-56 focus:ring-black focus:border-black">
                                         <div class="flex gap-2">
@@ -252,7 +252,7 @@
                                 <div class="flex flex-col gap-3 mb-5 sm:flex-row sm:justify-between sm:items-center">
                                     <form method="GET" action="{{ route('empleados.index') }}" class="flex flex-col gap-2 sm:flex-row sm:items-center">
                                         <input type="hidden" name="tab" value="vehiculos">
-                                        <input id="busqueda_vehiculos" type="text" name="busqueda" value="{{ request('tab') === 'vehiculos' ? request('busqueda') : '' }}"
+                                        <input type="text" name="busqueda" value="{{ request('tab') === 'vehiculos' ? request('busqueda') : '' }}"
                                                placeholder="Buscar por marca o modelo"
                                                class="border rounded px-3 py-2 text-sm w-full sm:w-48 focus:ring-black focus:border-black">
                                         <select name="tipo" class="border rounded px-3 py-2 text-sm focus:ring-black focus:border-black">
@@ -431,28 +431,6 @@
     </div>
 
     <script>
-        // ===== BLOQUEO ESPACIOS AL INICIO + MAX 3 ESPACIOS CONSECUTIVOS =====
-        function noLeadingSpaces(el) {
-            function trim() {
-                setTimeout(function() {
-                    el.value = el.value.replace(/^\s+/, '');
-                    el.value = el.value.replace(/ {4,}/g, '   ');
-                }, 0);
-            }
-            el.addEventListener('input',          trim);
-            el.addEventListener('keydown',        trim);
-            el.addEventListener('paste',          trim);
-            el.addEventListener('compositionend', trim);
-        }
-
-        document.addEventListener('DOMContentLoaded', function () {
-            var emp = document.getElementById('busqueda_empleados');
-            var veh = document.getElementById('busqueda_vehiculos');
-            if (emp) noLeadingSpaces(emp);
-            if (veh) noLeadingSpaces(veh);
-        });
-
-        // ===== MODAL ACCESO =====
         let _accesoEmpleadoId = null;
 
         function abrirModalAcceso(id, email) {
