@@ -112,11 +112,9 @@
                                 <div class="flex flex-col gap-3 mb-5 sm:flex-row sm:justify-between sm:items-center">
                                     <form method="GET" action="{{ route('empleados.index') }}" class="flex flex-col gap-2 sm:flex-row sm:items-center">
                                         <input type="hidden" name="tab" value="empleados">
-                                        <input type="text" name="busqueda" value="{{ request('tab') !== 'vehiculos' ? request('busqueda') : '' }}"
+                                        <input id="busqueda_empleados" type="text" name="busqueda" value="{{ request('tab') !== 'vehiculos' ? request('busqueda') : '' }}"
                                                placeholder="Buscar por nombre o correo"
-                                               class="border rounded px-3 py-2 text-sm w-full sm:w-56 focus:ring-black focus:border-black"
-                                               onkeydown="if(event.key===' ' && this.value.length===0) event.preventDefault();"
-                                               oninput="this.value=this.value.replace(/^ +/,'');">
+                                               class="border rounded px-3 py-2 text-sm w-full sm:w-56 focus:ring-black focus:border-black">
                                         <div class="flex gap-2">
                                             <button type="submit"
                                                     class="flex-1 sm:flex-none bg-white hover:bg-gray-100 text-black px-4 py-2 rounded shadow font-semibold border text-sm transition">
@@ -254,11 +252,9 @@
                                 <div class="flex flex-col gap-3 mb-5 sm:flex-row sm:justify-between sm:items-center">
                                     <form method="GET" action="{{ route('empleados.index') }}" class="flex flex-col gap-2 sm:flex-row sm:items-center">
                                         <input type="hidden" name="tab" value="vehiculos">
-                                        <input type="text" name="busqueda" value="{{ request('tab') === 'vehiculos' ? request('busqueda') : '' }}"
+                                        <input id="busqueda_vehiculos" type="text" name="busqueda" value="{{ request('tab') === 'vehiculos' ? request('busqueda') : '' }}"
                                                placeholder="Buscar por marca o modelo"
-                                               class="border rounded px-3 py-2 text-sm w-full sm:w-48 focus:ring-black focus:border-black"
-                                               onkeydown="if(event.key===' ' && this.value.length===0) event.preventDefault();"
-                                               oninput="this.value=this.value.replace(/^ +/,'');">
+                                               class="border rounded px-3 py-2 text-sm w-full sm:w-48 focus:ring-black focus:border-black">
                                         <select name="tipo" class="border rounded px-3 py-2 text-sm focus:ring-black focus:border-black">
                                             <option value="">Todos los tipos</option>
                                             <option value="carro" {{ request('tipo') == 'carro' ? 'selected' : '' }}>Carros</option>
@@ -435,6 +431,28 @@
     </div>
 
     <script>
+        // ===== BLOQUEO ESPACIOS AL INICIO (desktop + móvil + Chrome + paste) =====
+        function noLeadingSpaces(el) {
+            function trim(e) {
+                // Usamos setTimeout para que el valor ya esté actualizado en móvil
+                setTimeout(function() {
+                    el.value = el.value.replace(/^\s+/, '');
+                }, 0);
+            }
+            el.addEventListener('input',     trim);
+            el.addEventListener('keydown',   trim);
+            el.addEventListener('paste',     trim);
+            el.addEventListener('compositionend', trim); // para teclados móvil con autocomplete
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var emp = document.getElementById('busqueda_empleados');
+            var veh = document.getElementById('busqueda_vehiculos');
+            if (emp) noLeadingSpaces(emp);
+            if (veh) noLeadingSpaces(veh);
+        });
+
+        // ===== MODAL ACCESO =====
         let _accesoEmpleadoId = null;
 
         function abrirModalAcceso(id, email) {
