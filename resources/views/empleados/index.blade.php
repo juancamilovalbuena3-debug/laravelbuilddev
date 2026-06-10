@@ -114,7 +114,9 @@
                                         <input type="hidden" name="tab" value="empleados">
                                         <input type="text" name="busqueda" value="{{ request('tab') !== 'vehiculos' ? request('busqueda') : '' }}"
                                                placeholder="Buscar por nombre o correo"
-                                               class="border rounded px-3 py-2 text-sm w-full sm:w-56 focus:ring-black focus:border-black">
+                                               class="border rounded px-3 py-2 text-sm w-full sm:w-56 focus:ring-black focus:border-black"
+                                               onkeydown="if(event.key===' ' && this.value.length===0) event.preventDefault();"
+                                               oninput="this.value=this.value.replace(/^ +/,'');">
                                         <div class="flex gap-2">
                                             <button type="submit"
                                                     class="flex-1 sm:flex-none bg-white hover:bg-gray-100 text-black px-4 py-2 rounded shadow font-semibold border text-sm transition">
@@ -254,7 +256,9 @@
                                         <input type="hidden" name="tab" value="vehiculos">
                                         <input type="text" name="busqueda" value="{{ request('tab') === 'vehiculos' ? request('busqueda') : '' }}"
                                                placeholder="Buscar por marca o modelo"
-                                               class="border rounded px-3 py-2 text-sm w-full sm:w-48 focus:ring-black focus:border-black">
+                                               class="border rounded px-3 py-2 text-sm w-full sm:w-48 focus:ring-black focus:border-black"
+                                               onkeydown="if(event.key===' ' && this.value.length===0) event.preventDefault();"
+                                               oninput="this.value=this.value.replace(/^ +/,'');">
                                         <select name="tipo" class="border rounded px-3 py-2 text-sm focus:ring-black focus:border-black">
                                             <option value="">Todos los tipos</option>
                                             <option value="carro" {{ request('tipo') == 'carro' ? 'selected' : '' }}>Carros</option>
