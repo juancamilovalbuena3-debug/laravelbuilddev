@@ -45,8 +45,8 @@ class FortifyServiceProvider extends ServiceProvider
             $attempts = Cache::get($attemptsKey, 0) + 1;
             Cache::put($attemptsKey, $attempts, now()->addMinutes(3));
 
-            // Al tercer intento, bloquear 3 minutos y limpiar contador
-            if ($attempts >= 3) {
+            // Al cuarto intento, bloquear 3 minutos y limpiar contador
+            if ($attempts >= 4) {
                 Cache::put($blockKey, true, now()->addMinutes(3));
                 Cache::put($expiresKey, time() + 180, now()->addMinutes(3));
                 Cache::forget($attemptsKey);
