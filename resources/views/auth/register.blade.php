@@ -89,11 +89,141 @@
         </x-authentication-card>
     </div>
 
-   <script>
+  <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const noSpaceInputs = ['name', 'email', 'password', 'password_confirmation'];
 
-    noSpaceInputs.forEach(function (id) {
+    // ── NOMBRE ──────────────────────────────────────────────────────────────
+    const nameInput = document.getElementById('name');
+    if (nameInput) {
+        // Solo letras y espacios; bloquea espacio al inicio o doble espacio
+        nameInput.addEventListener('keydown', function (e) {
+            if ((e.key === ' ' || e.code === 'Space') && this.value.length === 0) {
+                e.preventDefault(); // no espacio al inicio
+            }
+        });
+
+        nameInput.addEventListener('input', function () {
+            const pos = this.selectionStart;
+            // Elimina cualquier carácter que no sea letra o espacio simple
+            let cleaned = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñÜü ]/g, '');
+            // Evita doble espacio
+            cleaned = cleaned.replace(/  +/g, ' ');
+            // Evita espacio al inicio
+            cleaned = cleaned.replace(/^ /, '');
+            if (this.value !== cleaned) {
+                this.value = cleaned;
+                this.selectionStart = this.selectionEnd = Math.min(pos, cleaned.length);
+            }
+        });
+
+        nameInput.addEventListener('paste', function (e) {
+            e.preventDefault();
+            const pasted = (e.clipboardData || window.clipboardData).getData('text');
+            let cleaned = pasted.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñÜü ]/g, '').replace(/  +/g, ' ').trim();
+            const start = this.selectionStart;
+            const end   = this.selectionEnd;
+            this.value = this.value.substring(0, start) + cleaned + this.value.substring(end);
+            this.selectionStart = this.selectionEnd = start + cleaned.length;
+        });
+
+        nameInput.closest('form').addEventListener('submit', function (e) {
+            const soloLetras = /^[A-Za-zÁÉÍÓÚáéíóúÑñÜü]+( [A-Za-zÁÉÍÓÚáéíóúÑñÜü]+)*$/;
+            if (!soloLetras.test(nameInput.value.trim())) {
+                e.preventDefault();
+                nameInput.setCustomValidity('Solo letras y espacios simples entre palabras.');
+                nameInput.reportValidity();
+            } else {
+                nameInput.setCustomValidity('');
+            }
+        });
+    }
+
+    // ── EMAIL ────────────────────────────────────────────────────────────────
+    const emailInput = document.getElementById('email');
+    if (emailInput) {
+        const SUFFIX = '@gmail.com';
+
+        // Fuerza que el valor siempre termine en @gmail.com
+        function enforceGmail() {
+            let val = emailInput.value;
+            // Quita espacios en cualquier posición
+            val = val.replace(/\s/g, '');
+            // Si el usuario borró parte del sufijo, lo restaura
+            if (!val.endsWith(SUFFIX)) {
+                // Encuentra hasta dónde hay parte del sufijo al final
+                let base = val;
+                for (let i = SUFFIX.length - 1; i >= 1; i--) {
+                    if (val.endsWith(SUFFIX.substring(0, i))) {
+                        base = val.slice(0, val.length - i);
+                        break;
+                    }
+                }
+                // Limpia cualquier '@' extra en la base
+                base = base.replace(/@.*$/, '');
+                val = base + SUFFIX;
+            }
+            // Evita escribir después de @gmail.com (solo permite editar la parte local)
+            const suffixIdx = val.indexOf(SUFFIX);
+            if (suffixIdx !== -1) {
+                val = val.substring(0, suffixIdx) + SUFFIX;
+            }
+            emailInput.value = val;
+        }
+
+        emailInput.addEventListener('keydown', function (e) {
+            // Bloquea espacio siempre
+            if (e.key === ' ' || e.code === 'Space') {
+                e.preventDefault();
+                return;
+            }
+            const val   = this.value;
+            const pos   = this.selectionStart;
+            const selEnd = this.selectionEnd;
+            const suffixStart = val.indexOf(SUFFIX);
+
+            if (suffixStart === -1) return;
+
+            // Impide editar dentro del sufijo @gmail.com
+            const editingInSuffix = pos > suffixStart || selEnd > suffixStart;
+            const isDeletion = e.key === 'Backspace' || e.key === 'Delete';
+
+            if (editingInSuffix && !isDeletion) {
+                e.preventDefault();
+            }
+            // Backspace/Delete: no deja borrar el sufijo
+            if (isDeletion && pos >= suffixStart && selEnd <= suffixStart + SUFFIX.length && pos === selEnd) {
+                e.preventDefault();
+            }
+        });
+
+        emailInput.addEventListener('input', enforceGmail);
+
+        emailInput.addEventListener('paste', function (e) {
+            e.preventDefault();
+            let pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/\s/g, '');
+            // Si lo pegado ya contiene @, toma solo la parte local
+            if (pasted.includes('@')) pasted = pasted.split('@')[0];
+            const suffixStart = this.value.indexOf(SUFFIX);
+            const base = suffixStart !== -1 ? this.value.substring(0, suffixStart) : '';
+            const start = this.selectionStart <= (suffixStart !== -1 ? suffixStart : this.value.length)
+                ? this.selectionStart : 0;
+            const end   = this.selectionEnd   <= (suffixStart !== -1 ? suffixStart : this.value.length)
+                ? this.selectionEnd   : 0;
+            this.value = base.substring(0, start) + pasted + base.substring(end) + SUFFIX;
+            this.selectionStart = this.selectionEnd = start + pasted.length;
+        });
+
+        // Posiciona el cursor antes del sufijo si el usuario hace click dentro de él
+        emailInput.addEventListener('click', function () {
+            const suffixStart = this.value.indexOf(SUFFIX);
+            if (suffixStart !== -1 && this.selectionStart > suffixStart) {
+                this.selectionStart = this.selectionEnd = suffixStart;
+            }
+        });
+    }
+
+    // ── CONTRASEÑA (y confirmación) ──────────────────────────────────────────
+    ['password', 'password_confirmation'].forEach(function (id) {
         const input = document.getElementById(id);
         if (!input) return;
 
@@ -103,35 +233,24 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        input.addEventListener('paste', function (e) {
-            e.preventDefault();
-            var pasted = (e.clipboardData || window.clipboardData).getData('text');
-            var cleaned = id === 'name'
-                ? pasted.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñÜü]/g, '')
-                : pasted.replace(/\s/g, '');
-            var start = this.selectionStart;
-            var end = this.selectionEnd;
-            this.value = this.value.substring(0, start) + cleaned + this.value.substring(end);
-            this.selectionStart = this.selectionEnd = start + cleaned.length;
+        input.addEventListener('input', function () {
+            if (this.value.includes(' ')) {
+                const pos = this.selectionStart;
+                this.value = this.value.replace(/ /g, '');
+                this.selectionStart = this.selectionEnd = Math.max(0, pos - 1);
+            }
         });
 
-        if (id === 'name') {
-            input.addEventListener('input', function () {
-                this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñÜü]/g, '');
-            });
-
-            input.closest('form').addEventListener('submit', function (e) {
-                const soloLetras = /^[A-Za-zÁÉÍÓÚáéíóúÑñÜü]+$/;
-                if (!soloLetras.test(input.value)) {
-                    e.preventDefault();
-                    input.setCustomValidity('Solo se permiten letras, sin espacios ni números.');
-                    input.reportValidity();
-                } else {
-                    input.setCustomValidity('');
-                }
-            });
-        }
+        input.addEventListener('paste', function (e) {
+            e.preventDefault();
+            const pasted  = (e.clipboardData || window.clipboardData).getData('text').replace(/\s/g, '');
+            const start   = this.selectionStart;
+            const end     = this.selectionEnd;
+            this.value    = this.value.substring(0, start) + pasted + this.value.substring(end);
+            this.selectionStart = this.selectionEnd = start + pasted.length;
+        });
     });
+
 });
 </script>
 </x-guest-layout>
