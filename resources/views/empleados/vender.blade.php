@@ -42,8 +42,9 @@
                             <label for="marca" class="block font-semibold mb-1">Marca:</label>
                             <input type="text" name="marca" id="marca" value="{{ old('marca') }}"
                                    maxlength="80"
-                                   placeholder="Ej: Toyota, Chevrolet, Bajaj"
-                                   class="border rounded p-2 w-full border-gray-300">
+                                   readonly
+                                   placeholder="Selecciona el tipo primero"
+                                   class="border rounded p-2 w-full border-gray-300 bg-gray-50 cursor-pointer">
                             <p class="text-red-600 text-sm mt-1" id="error-marca"></p>
                         </div>
 
@@ -86,7 +87,6 @@
                             <label for="imagen" class="block font-semibold mb-1">Imagen del vehículo (opcional):</label>
                             <input type="file" name="imagen" id="imagen" accept="image/*"
                                    class="border rounded p-2 w-full border-gray-300">
-                            <!-- Vista previa -->
                             <div id="preview-container" class="hidden mt-3">
                                 <img id="preview-imagen" src="" alt="Vista previa"
                                      class="h-40 object-cover rounded-lg border border-gray-300 shadow-sm">
@@ -134,7 +134,37 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
+        // ── Marcas separadas por tipo ─────────────────────────────
+        const marcasCarros = [
+            'Toyota','Chevrolet','Ford','Honda','Nissan','Hyundai','Kia','Mazda',
+            'Volkswagen','VW','Renault','Fiat','Peugeot','Citroen','Seat','Skoda',
+            'BMW','Mercedes','Mercedes Benz','Audi','Volvo','Jeep','Dodge','Ram',
+            'Chrysler','Cadillac','Buick','GMC','Lincoln','Tesla','Subaru','Mitsubishi',
+            'Suzuki','Isuzu','Daewoo','Ssangyong','Chery','Great Wall','JAC','BYD',
+            'Geely','Haval','DFSK','Zotye','Foton','Hafei','Brilliance','Changan',
+            'Porsche','Ferrari','Lamborghini','Maserati','Alfa Romeo','Lancia',
+            'Land Rover','Range Rover','Jaguar','Mini','Bentley','Rolls Royce',
+            'Aston Martin','McLaren','Bugatti','Lexus','Infiniti','Acura','Genesis',
+            'Rivian','Lucid','Polestar','Dacia','Lada','Opel','Vauxhall','Holden',
+            'Saab','Pontiac','Oldsmobile','Hummer','Saturn','Scion','Trabant'
+        ];
+
+        const marcasMotos = [
+            'Bajaj','Yamaha','Honda','Kawasaki','KTM','Ducati','Triumph','Harley',
+            'Harley Davidson','Royal Enfield','Benelli','Aprilia','BMW Motorrad',
+            'Husqvarna','Norton','Indian','Moto Guzzi','MV Agusta','Bimota',
+            'Energica','Zero Motorcycles','AKT','Hero','TVS','Pulsar','Lifan',
+            'Loncin','Zongshen','CFMoto','Kymco','SYM','Italika','Veloci','Auteco',
+            'Jianshe','Skygo','Bera','Ranger','Corven','Zanella','Mondial','Motomel',
+            'Beta','Guerrero','Gilera','Cuxi','Wanxin','Yumbo','Forza','Dinamo',
+            'Skyjet','Leopard','Condor','IGM','AKT Motos','Auteco Mobility',
+            'Vespa','Piaggio','Derbi','Rieju','Sherco','GasGas','Husaberg',
+            'Ossa','Montesa','Bultaco','Suzuki','Raider','Duke'
+        ];
+
         // ── Helpers ──────────────────────────────────────────────
         function setError(inputId, errorId, mensaje) {
             const input = document.getElementById(inputId);
@@ -150,18 +180,42 @@
             }
         }
 
-        // ── Bloquear números y símbolos en "marca" ───────────────
-        document.getElementById('marca').addEventListener('keydown', function (e) {
-            const teclaControl = ['Backspace','Delete','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Tab','Home','End'].includes(e.key);
-            if (teclaControl) return;
-            if (!/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s\-]$/.test(e.key)) e.preventDefault();
-        });
+        // ── Dropdown de marca con SweetAlert según tipo ──────────
+        const marcaInput = document.getElementById('marca');
+        const tipoSelect = document.getElementById('tipo');
 
-        document.getElementById('marca').addEventListener('paste', function (e) {
-            const texto = (e.clipboardData || window.clipboardData).getData('text');
-            if (!/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s\-]+$/.test(texto)) {
-                e.preventDefault();
-                setError('marca', 'error-marca', 'La marca solo puede contener letras.');
+        function abrirDropdownMarca() {
+            const tipo = tipoSelect.value;
+            const lista = tipo === 'Moto' ? marcasMotos : marcasCarros;
+            const opciones = lista.reduce((acc, m) => { acc[m] = m; return acc; }, {});
+
+            Swal.fire({
+                title: `Seleccionar marca de ${tipo}`,
+                input: 'select',
+                inputOptions: opciones,
+                inputValue: marcaInput.value || '',
+                showCancelButton: true,
+                confirmButtonText: 'Seleccionar',
+                cancelButtonText: 'Cancelar',
+                inputPlaceholder: 'Selecciona una marca',
+            }).then((result) => {
+                if (result.isConfirmed && result.value) {
+                    marcaInput.value = result.value;
+                    setError('marca', 'error-marca', '');
+                }
+            });
+        }
+
+        marcaInput.addEventListener('click', abrirDropdownMarca);
+
+        // Al cambiar el tipo, limpiar la marca si no corresponde
+        tipoSelect.addEventListener('change', function () {
+            const tipo  = this.value;
+            const lista = tipo === 'Moto' ? marcasMotos : marcasCarros;
+            const listaLower = lista.map(m => m.toLowerCase());
+            if (marcaInput.value && !listaLower.includes(marcaInput.value.toLowerCase())) {
+                marcaInput.value = '';
+                setError('marca', 'error-marca', `La marca seleccionada no corresponde a un ${tipo}. Por favor selecciona de nuevo.`);
             }
         });
 
@@ -197,43 +251,19 @@
             reader.readAsDataURL(file);
         });
 
-        // ── Marcas válidas ────────────────────────────────────────
-        const marcasValidas = [
-            'toyota','chevrolet','ford','honda','nissan','hyundai','kia','mazda',
-            'volkswagen','vw','renault','fiat','peugeot','citroen','seat','skoda',
-            'bmw','mercedes','mercedes benz','audi','volvo','jeep','dodge','ram',
-            'chrysler','cadillac','buick','gmc','lincoln','tesla','subaru','mitsubishi',
-            'suzuki','isuzu','daewoo','ssangyong','chery','great wall','jac','byd',
-            'geely','haval','dfsk','zotye','foton','hafei','brilliance','changan',
-            'porsche','ferrari','lamborghini','maserati','alfa romeo','lancia',
-            'land rover','range rover','jaguar','mini','bentley','rolls royce',
-            'aston martin','mclaren','bugatti','lexus','infiniti','acura','genesis',
-            'rivian','lucid','polestar','dacia','lada','opel','vauxhall','holden',
-            'saab','pontiac','oldsmobile','hummer','saturn','scion','trabant',
-            'bajaj','yamaha','kawasaki','ktm','ducati','triumph','harley',
-            'harley davidson','royal enfield','benelli','aprilia','bmw motorrad',
-            'husqvarna','norton','indian','moto guzzi','mv agusta','bimota',
-            'energica','zero motorcycles','akt','hero','tvs','pulsar','lifan',
-            'loncin','zongshen','cfmoto','kymco','sym','italika','veloci','auteco',
-            'jianshe','skygo','bera','ranger','corven','zanella','mondial','motomel',
-            'beta','guerrero','gilera','cuxi','wanxin','yumbo','forza','dinamo',
-            'skyjet','leopard','condor','igm','akt motos','auteco mobility',
-            'vespa','piaggio','derbi','rieju','sherco','gasgas','husaberg',
-            'ossa','montesa','bultaco','sanglas'
-        ];
-
         // ── Validaciones individuales ─────────────────────────────
         function validarMarca() {
-            const valor = document.getElementById('marca').value.trim();
-            if (!valor)          { setError('marca', 'error-marca', 'La marca es obligatoria.');                       return false; }
-            if (valor.length < 2){ setError('marca', 'error-marca', 'La marca debe tener al menos 2 caracteres.');    return false; }
-            if (valor.length > 80){ setError('marca', 'error-marca', 'La marca no puede superar los 80 caracteres.'); return false; }
-            if (!/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s\-]+$/.test(valor)) {
-                setError('marca', 'error-marca', 'La marca solo puede contener letras.');
+            const valor = marcaInput.value.trim();
+            const tipo  = tipoSelect.value;
+            const lista = tipo === 'Moto' ? marcasMotos : marcasCarros;
+            const listaLower = lista.map(m => m.toLowerCase());
+
+            if (!valor) {
+                setError('marca', 'error-marca', 'La marca es obligatoria.');
                 return false;
             }
-            if (!marcasValidas.includes(valor.toLowerCase())) {
-                setError('marca', 'error-marca', 'Por favor ingresa una marca de vehículo reconocida.');
+            if (!listaLower.includes(valor.toLowerCase())) {
+                setError('marca', 'error-marca', `Esa marca no corresponde a un ${tipo}. Por favor selecciona del listado.`);
                 return false;
             }
             setError('marca', 'error-marca', '');
@@ -275,7 +305,6 @@
         }
 
         // ── Listeners en tiempo real ──────────────────────────────
-        document.getElementById('marca').addEventListener('input',       validarMarca);
         document.getElementById('modelo').addEventListener('input',      validarModelo);
         document.getElementById('precio').addEventListener('input',      validarPrecio);
         document.getElementById('descripcion').addEventListener('input', validarDescripcion);
@@ -287,19 +316,17 @@
             const p  = validarPrecio();
             const d  = validarDescripcion();
 
-            if (!m || !mo || !p || !d) return; // hay errores, no abrir modal
+            if (!m || !mo || !p || !d) return;
 
-            // Rellenar datos del modal
-            document.getElementById('modal-tipo').textContent   = document.getElementById('tipo').value;
-            document.getElementById('modal-marca').textContent  = document.getElementById('marca').value.trim();
+            document.getElementById('modal-tipo').textContent   = tipoSelect.value;
+            document.getElementById('modal-marca').textContent  = marcaInput.value.trim();
             document.getElementById('modal-modelo').textContent = document.getElementById('modelo').value.trim();
 
             const precio = parseFloat(document.getElementById('precio').value);
             document.getElementById('modal-precio').textContent =
                 '$' + new Intl.NumberFormat('es-CO').format(precio) + ' COP';
 
-            // Mostrar modal con animación
-            const modal    = document.getElementById('modalConfirmar');
+            const modal     = document.getElementById('modalConfirmar');
             const contenido = document.getElementById('modalContenido');
             modal.classList.remove('hidden');
             setTimeout(() => {
@@ -311,7 +338,7 @@
         }
 
         function cerrarModal() {
-            const modal    = document.getElementById('modalConfirmar');
+            const modal     = document.getElementById('modalConfirmar');
             const contenido = document.getElementById('modalContenido');
             modal.classList.remove('opacity-100');
             modal.classList.add('opacity-0');
@@ -324,7 +351,6 @@
             document.getElementById('form-vehiculo').submit();
         }
 
-        // Cerrar modal al hacer clic fuera
         document.getElementById('modalConfirmar').addEventListener('click', function (e) {
             if (e.target === this) cerrarModal();
         });
