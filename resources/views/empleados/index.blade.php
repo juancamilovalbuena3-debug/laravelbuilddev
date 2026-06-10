@@ -431,21 +431,20 @@
     </div>
 
     <script>
-        // ===== BLOQUEO ESPACIOS AL INICIO (desktop + móvil + Chrome + paste) =====
-       function noLeadingSpaces(el) {
-    function trim() {
-        setTimeout(function() {
-            // Sin espacios al inicio
-            el.value = el.value.replace(/^\s+/, '');
-            // Máximo 3 espacios consecutivos en cualquier parte
-            el.value = el.value.replace(/ {4,}/g, '   ');
-        }, 0);
-    }
-    el.addEventListener('input',          trim);
-    el.addEventListener('keydown',        trim);
-    el.addEventListener('paste',          trim);
-    el.addEventListener('compositionend', trim);
-}
+        // ===== BLOQUEO ESPACIOS AL INICIO + MAX 3 ESPACIOS CONSECUTIVOS =====
+        function noLeadingSpaces(el) {
+            function trim() {
+                setTimeout(function() {
+                    el.value = el.value.replace(/^\s+/, '');
+                    el.value = el.value.replace(/ {4,}/g, '   ');
+                }, 0);
+            }
+            el.addEventListener('input',          trim);
+            el.addEventListener('keydown',        trim);
+            el.addEventListener('paste',          trim);
+            el.addEventListener('compositionend', trim);
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
             var emp = document.getElementById('busqueda_empleados');
             var veh = document.getElementById('busqueda_vehiculos');
