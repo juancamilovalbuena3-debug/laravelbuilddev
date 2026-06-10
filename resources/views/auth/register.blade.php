@@ -95,20 +95,16 @@ document.addEventListener('DOMContentLoaded', function () {
     // ── NOMBRE ──────────────────────────────────────────────────────────────
     const nameInput = document.getElementById('name');
     if (nameInput) {
-        // Solo letras y espacios; bloquea espacio al inicio o doble espacio
         nameInput.addEventListener('keydown', function (e) {
             if ((e.key === ' ' || e.code === 'Space') && this.value.length === 0) {
-                e.preventDefault(); // no espacio al inicio
+                e.preventDefault();
             }
         });
 
         nameInput.addEventListener('input', function () {
             const pos = this.selectionStart;
-            // Elimina cualquier carácter que no sea letra o espacio simple
             let cleaned = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñÜü ]/g, '');
-            // Evita doble espacio
             cleaned = cleaned.replace(/  +/g, ' ');
-            // Evita espacio al inicio
             cleaned = cleaned.replace(/^ /, '');
             if (this.value !== cleaned) {
                 this.value = cleaned;
@@ -141,83 +137,194 @@ document.addEventListener('DOMContentLoaded', function () {
     // ── EMAIL ────────────────────────────────────────────────────────────────
     const emailInput = document.getElementById('email');
     if (emailInput) {
-        const SUFFIX = '@gmail.com';
 
-        // Fuerza que el valor siempre termine en @gmail.com
-        function enforceGmail() {
-            let val = emailInput.value;
-            // Quita espacios en cualquier posición
-            val = val.replace(/\s/g, '');
-            // Si el usuario borró parte del sufijo, lo restaura
-            if (!val.endsWith(SUFFIX)) {
-                // Encuentra hasta dónde hay parte del sufijo al final
-                let base = val;
-                for (let i = SUFFIX.length - 1; i >= 1; i--) {
-                    if (val.endsWith(SUFFIX.substring(0, i))) {
-                        base = val.slice(0, val.length - i);
-                        break;
-                    }
-                }
-                // Limpia cualquier '@' extra en la base
-                base = base.replace(/@.*$/, '');
-                val = base + SUFFIX;
-            }
-            // Evita escribir después de @gmail.com (solo permite editar la parte local)
-            const suffixIdx = val.indexOf(SUFFIX);
-            if (suffixIdx !== -1) {
-                val = val.substring(0, suffixIdx) + SUFFIX;
-            }
-            emailInput.value = val;
+        const DOMAINS = [
+            '@gmail.com',
+            '@hotmail.com',
+            '@outlook.com',
+            '@yahoo.com',
+            '@mail.com',
+            '@icloud.com',
+            '@protonmail.com',
+            '@proton.me',
+        ];
+
+        // ── Dropdown de sugerencias ──────────────────────────────────────────
+        const dropdown = document.createElement('ul');
+        dropdown.style.cssText = `
+            position: absolute;
+            background: #fff;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+            list-style: none;
+            margin: 2px 0 0 0;
+            padding: 4px 0;
+            width: ${emailInput.offsetWidth}px;
+            z-index: 9999;
+            display: none;
+            font-family: inherit;
+            font-size: 0.95em;
+        `;
+        // Posición relativa al input
+        emailInput.parentElement.style.position = 'relative';
+        emailInput.parentElement.appendChild(dropdown);
+
+        let activeSuffix = null; // sufijo actualmente fijado
+
+        function getLocalPart(val) {
+            const atIdx = val.indexOf('@');
+            return atIdx !== -1 ? val.substring(0, atIdx) : val;
+        }
+
+        function showDropdown(localPart) {
+            dropdown.innerHTML = '';
+            DOMAINS.forEach(function (domain) {
+                const li = document.createElement('li');
+                li.textContent = localPart + domain;
+                li.style.cssText = `
+                    padding: 8px 14px;
+                    cursor: pointer;
+                    color: #374151;
+                    transition: background 0.15s;
+                `;
+                li.addEventListener('mouseenter', function () { this.style.background = '#f3f4f6'; });
+                li.addEventListener('mouseleave', function () { this.style.background = ''; });
+                li.addEventListener('mousedown', function (e) {
+                    e.preventDefault();
+                    selectDomain(domain, localPart);
+                });
+                dropdown.appendChild(li);
+            });
+            dropdown.style.width = emailInput.offsetWidth + 'px';
+            dropdown.style.display = 'block';
+        }
+
+        function hideDropdown() {
+            dropdown.style.display = 'none';
+        }
+
+        function selectDomain(domain, localPart) {
+            activeSuffix = domain;
+            emailInput.value = localPart + domain;
+            // Coloca cursor al final de la parte local
+            const pos = localPart.length;
+            emailInput.focus();
+            emailInput.selectionStart = emailInput.selectionEnd = pos;
+            hideDropdown();
+        }
+
+        // Bloquea edición dentro del sufijo fijado
+        function suffixStart() {
+            if (!activeSuffix) return -1;
+            const idx = emailInput.value.lastIndexOf(activeSuffix);
+            return idx !== -1 ? idx : -1;
         }
 
         emailInput.addEventListener('keydown', function (e) {
-            // Bloquea espacio siempre
+            // Siempre bloquea espacio
             if (e.key === ' ' || e.code === 'Space') {
                 e.preventDefault();
                 return;
             }
-            const val   = this.value;
-            const pos   = this.selectionStart;
+
+            const pos    = this.selectionStart;
             const selEnd = this.selectionEnd;
-            const suffixStart = val.indexOf(SUFFIX);
+            const sfxStart = suffixStart();
 
-            if (suffixStart === -1) return;
+            if (sfxStart === -1) return;
 
-            // Impide editar dentro del sufijo @gmail.com
-            const editingInSuffix = pos > suffixStart || selEnd > suffixStart;
-            const isDeletion = e.key === 'Backspace' || e.key === 'Delete';
-
-            if (editingInSuffix && !isDeletion) {
-                e.preventDefault();
+            // Muestra dropdown si el usuario escribe '@' justo antes del sufijo
+            // y borra el sufijo con Backspace (suelta el dominio fijado)
+            if (e.key === 'Backspace' || e.key === 'Delete') {
+                if (pos <= sfxStart && selEnd <= sfxStart) return; // edición libre en parte local
+                if (pos === sfxStart && selEnd === sfxStart) {
+                    // Backspace desde justo antes del @: suelta el dominio
+                    activeSuffix = null;
+                    return;
+                }
+                e.preventDefault(); // no borrar dentro del sufijo
+                return;
             }
-            // Backspace/Delete: no deja borrar el sufijo
-            if (isDeletion && pos >= suffixStart && selEnd <= suffixStart + SUFFIX.length && pos === selEnd) {
-                e.preventDefault();
+
+            // Bloquea cualquier tecla de escritura dentro del sufijo
+            if (pos > sfxStart || selEnd > sfxStart) {
+                if (e.key.length === 1) e.preventDefault();
             }
         });
 
-        emailInput.addEventListener('input', enforceGmail);
+        emailInput.addEventListener('input', function () {
+            const val = this.value.replace(/\s/g, '');
+            if (this.value !== val) this.value = val;
+
+            const sfxStart = suffixStart();
+
+            if (activeSuffix) {
+                // Protege el sufijo: si fue alterado, lo restaura
+                if (!this.value.endsWith(activeSuffix)) {
+                    const local = getLocalPart(this.value);
+                    this.value = local + activeSuffix;
+                }
+                hideDropdown();
+                return;
+            }
+
+            // Sin dominio fijado: muestra sugerencias cuando aparece '@'
+            const atIdx = this.value.indexOf('@');
+            if (atIdx !== -1) {
+                const local = this.value.substring(0, atIdx);
+                const typed = this.value.substring(atIdx); // '@' + lo que escribió
+                // Filtra dominios que coincidan con lo escrito tras '@'
+                const matches = DOMAINS.filter(d => d.startsWith(typed));
+                if (matches.length > 0) {
+                    showDropdown(local);
+                } else {
+                    hideDropdown();
+                }
+            } else {
+                hideDropdown();
+            }
+        });
 
         emailInput.addEventListener('paste', function (e) {
             e.preventDefault();
             let pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/\s/g, '');
-            // Si lo pegado ya contiene @, toma solo la parte local
-            if (pasted.includes('@')) pasted = pasted.split('@')[0];
-            const suffixStart = this.value.indexOf(SUFFIX);
-            const base = suffixStart !== -1 ? this.value.substring(0, suffixStart) : '';
-            const start = this.selectionStart <= (suffixStart !== -1 ? suffixStart : this.value.length)
-                ? this.selectionStart : 0;
-            const end   = this.selectionEnd   <= (suffixStart !== -1 ? suffixStart : this.value.length)
-                ? this.selectionEnd   : 0;
-            this.value = base.substring(0, start) + pasted + base.substring(end) + SUFFIX;
-            this.selectionStart = this.selectionEnd = start + pasted.length;
+
+            if (activeSuffix) {
+                // Solo pega en la parte local
+                if (pasted.includes('@')) pasted = pasted.split('@')[0];
+                const sfxStart = suffixStart();
+                const local    = sfxStart !== -1 ? this.value.substring(0, sfxStart) : '';
+                const start    = Math.min(this.selectionStart, sfxStart !== -1 ? sfxStart : local.length);
+                const end      = Math.min(this.selectionEnd,   sfxStart !== -1 ? sfxStart : local.length);
+                this.value = local.substring(0, start) + pasted + local.substring(end) + activeSuffix;
+                this.selectionStart = this.selectionEnd = start + pasted.length;
+            } else {
+                // Pega libremente; si tiene @, muestra dropdown
+                const start = this.selectionStart;
+                const end   = this.selectionEnd;
+                this.value  = this.value.substring(0, start) + pasted + this.value.substring(end);
+                this.selectionStart = this.selectionEnd = start + pasted.length;
+                const atIdx = this.value.indexOf('@');
+                if (atIdx !== -1) showDropdown(this.value.substring(0, atIdx));
+            }
         });
 
-        // Posiciona el cursor antes del sufijo si el usuario hace click dentro de él
         emailInput.addEventListener('click', function () {
-            const suffixStart = this.value.indexOf(SUFFIX);
-            if (suffixStart !== -1 && this.selectionStart > suffixStart) {
-                this.selectionStart = this.selectionEnd = suffixStart;
+            const sfxStart = suffixStart();
+            if (sfxStart !== -1 && this.selectionStart > sfxStart) {
+                this.selectionStart = this.selectionEnd = sfxStart;
+            }
+        });
+
+        emailInput.addEventListener('blur', function () {
+            setTimeout(hideDropdown, 150);
+        });
+
+        emailInput.addEventListener('focus', function () {
+            const atIdx = this.value.indexOf('@');
+            if (atIdx !== -1 && !activeSuffix) {
+                showDropdown(this.value.substring(0, atIdx));
             }
         });
     }
@@ -243,10 +350,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
         input.addEventListener('paste', function (e) {
             e.preventDefault();
-            const pasted  = (e.clipboardData || window.clipboardData).getData('text').replace(/\s/g, '');
-            const start   = this.selectionStart;
-            const end     = this.selectionEnd;
-            this.value    = this.value.substring(0, start) + pasted + this.value.substring(end);
+            const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/\s/g, '');
+            const start  = this.selectionStart;
+            const end    = this.selectionEnd;
+            this.value   = this.value.substring(0, start) + pasted + this.value.substring(end);
             this.selectionStart = this.selectionEnd = start + pasted.length;
         });
     });
