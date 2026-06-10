@@ -153,7 +153,7 @@
         ];
 
         const marcasMotos = [
-            'Bajaj','Yamaha','Kawasaki','KTM','Ducati','Triumph','Harley',
+            'Yamaha','Kawasaki','KTM','Ducati','Triumph','Harley',
             'Harley Davidson','Royal Enfield','Benelli','Aprilia','BMW Motorrad',
             'Husqvarna','Norton','Indian','Moto Guzzi','MV Agusta','Bimota',
             'Energica','Zero Motorcycles','AKT','Hero','TVS','Pulsar','Lifan',
