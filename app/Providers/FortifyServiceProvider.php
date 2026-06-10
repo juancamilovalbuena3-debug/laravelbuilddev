@@ -28,33 +28,34 @@ class FortifyServiceProvider extends ServiceProvider
 
         RateLimiter::for('login', function (Request $request) {
             $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
-            $blockKey = 'login_blocked_'.$throttleKey;
+            $blockKey    = 'login_blocked_'.$throttleKey;
             $attemptsKey = 'login_attempts_'.$throttleKey;
+            $expiresKey  = 'login_blocked_expires_'.$throttleKey;
 
-            // Si está bloqueado, calcular tiempo restante y redirigir
+            // Si está bloqueado, mostrar tiempo restante
             if (Cache::has($blockKey)) {
-                $remainingSeconds = Cache::get($blockKey . '_expires') - time();
+                $remainingSeconds = max(0, Cache::get($expiresKey, time()) - time());
                 $remainingMinutes = max(1, ceil($remainingSeconds / 60));
                 return redirect()->route('login')->withErrors([
                     'email' => 'Demasiados intentos fallidos. Tu acceso está bloqueado por '.$remainingMinutes.' minuto(s). Intenta de nuevo más tarde.',
                 ]);
             }
 
-            // Contar intentos
+            // Contar intentos fallidos
             $attempts = Cache::get($attemptsKey, 0) + 1;
-            Cache::put($attemptsKey, $attempts, now()->addMinutes(5));
+            Cache::put($attemptsKey, $attempts, now()->addMinutes(3));
 
-            // Al tercer intento fallido, bloquear 5 minutos
+            // Al tercer intento, bloquear 3 minutos y limpiar contador
             if ($attempts >= 3) {
-                Cache::put($blockKey, true, now()->addMinutes(5));
-                Cache::put($blockKey . '_expires', time() + 300, now()->addMinutes(5));
+                Cache::put($blockKey, true, now()->addMinutes(3));
+                Cache::put($expiresKey, time() + 180, now()->addMinutes(3));
                 Cache::forget($attemptsKey);
                 return redirect()->route('login')->withErrors([
-                    'email' => 'Has superado el número máximo de intentos. Tu acceso está bloqueado por 5 minutos.',
+                    'email' => 'Has superado el número máximo de intentos. Tu acceso está bloqueado por 3 minutos.',
                 ]);
             }
 
-            return Limit::perMinute(3)->by($throttleKey);
+            return Limit::perMinute(60)->by($throttleKey);
         });
 
         RateLimiter::for('two-factor', function (Request $request) {
