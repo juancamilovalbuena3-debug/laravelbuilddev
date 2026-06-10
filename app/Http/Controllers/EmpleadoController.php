@@ -91,7 +91,7 @@ class EmpleadoController extends Controller
             $validated = $request->validate([
                 'nombre'  => 'required|string|max:255',
                 'puesto'  => 'required|string|max:255',
-                'salario' => 'required|numeric|min:1'750.905',
+                'salario' => 'required|numeric|min:1750905',
                 'email'   => 'required|email|unique:empleados,email',
             ], [
                 'nombre.required'  => 'El nombre es obligatorio.',
@@ -164,7 +164,7 @@ class EmpleadoController extends Controller
             $validated = $request->validate([
                 'nombre'  => 'required|string|max:255',
                 'puesto'  => 'required|string|max:255',
-                'salario' => 'required|numeric|min:1'750.905',
+                'salario' => 'required|numeric|min:1750905',,
                 'email'   => 'required|email|unique:empleados,email,' . $empleado->id,
             ], [
                 'nombre.required'  => 'El nombre es obligatorio.',
