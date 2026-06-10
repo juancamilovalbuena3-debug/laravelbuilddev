@@ -1,8 +1,6 @@
 <x-app-layout>
     @php
         // --- INICIO DE RECÁLCULO DINÁMICO ---
-        // Sumamos la columna 'cantidad' de la tabla para que las gráficas, 
-        // las barras de disponibilidad y las tarjetas reflejen unidades reales.
         $ventasRealesCarros = [];
         $ventasRealesMotos = [];
         $totalCarrosReales = 0;
@@ -24,14 +22,12 @@
             }
         }
 
-        // Sobrescribimos la data para que el HTML y JavaScript usen las sumas correctas
         $reporte['ventas_por_vehiculo_carros'] = $ventasRealesCarros;
         $reporte['ventas_por_vehiculo_motos']  = $ventasRealesMotos;
         $statsLaravel['total_carros']          = $totalCarrosReales;
         $statsLaravel['total_motos']           = $totalMotosReales;
         $statsLaravel['total_ventas']          = $totalCarrosReales + $totalMotosReales;
 
-        // Recalcular Top del Mes basado en cantidades reales
         $todosReales = array_merge($ventasRealesCarros, $ventasRealesMotos);
         if (!empty($todosReales)) {
             arsort($todosReales);
@@ -296,6 +292,25 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             actualizarGraficasInicial();
+
+            // ── Bloqueo de espacios en inputs de filtro ───────────
+            // buscarInput y vehiculoInput: bloquear espacio solo al inicio
+            ['buscarInput', 'vehiculoInput'].forEach(function(id) {
+                const el = document.getElementById(id);
+
+                el.addEventListener('keydown', function(e) {
+                    if (e.key === ' ' && this.selectionStart === 0) e.preventDefault();
+                });
+
+                el.addEventListener('input', function() {
+                    if (this.value.startsWith(' ')) {
+                        const pos = this.selectionStart - 1;
+                        this.value = this.value.trimStart();
+                        const newPos = Math.max(0, pos);
+                        this.setSelectionRange(newPos, newPos);
+                    }
+                });
+            });
         });
 
         function actualizarGraficasInicial() {
@@ -326,7 +341,6 @@
                 options: { responsive: true }
             });
 
-            // Esta gráfica ahora recibe los datos previamente sumados en PHP
             const todosVehiculos = { ...carrosVendidos, ...motosVendidas };
             actualizarChart('vehiculosChart', {
                 type: 'bar',
