@@ -91,7 +91,7 @@ class EmpleadoController extends Controller
             $validated = $request->validate([
                 'nombre'  => 'required|string|max:255',
                 'puesto'  => 'required|string|max:255',
-                'salario' => 'required|numeric|min:1',
+                'salario' => 'required|numeric|min:1'750.905',
                 'email'   => 'required|email|unique:empleados,email',
             ], [
                 'nombre.required'  => 'El nombre es obligatorio.',
@@ -102,7 +102,7 @@ class EmpleadoController extends Controller
                 'puesto.max'       => 'El puesto no puede superar los 255 caracteres.',
                 'salario.required' => 'El salario es obligatorio.',
                 'salario.numeric'  => 'El salario debe ser un número válido.',
-                'salario.min'      => 'El salario debe ser mayor a cero.',
+                'salario.min' => 'El salario debe ser mayor a cero. El mínimo permitido es de $1.750.905 (SMLMV 2026).',
                 'email.required'   => 'El correo electrónico es obligatorio.',
                 'email.email'      => 'El correo electrónico no tiene un formato válido.',
                 'email.unique'     => 'Ya existe un empleado registrado con este correo electrónico.',
@@ -164,7 +164,7 @@ class EmpleadoController extends Controller
             $validated = $request->validate([
                 'nombre'  => 'required|string|max:255',
                 'puesto'  => 'required|string|max:255',
-                'salario' => 'required|numeric|min:1',
+                'salario' => 'required|numeric|min:1'750.905',
                 'email'   => 'required|email|unique:empleados,email,' . $empleado->id,
             ], [
                 'nombre.required'  => 'El nombre es obligatorio.',
@@ -175,7 +175,7 @@ class EmpleadoController extends Controller
                 'puesto.max'       => 'El puesto no puede superar los 255 caracteres.',
                 'salario.required' => 'El salario es obligatorio.',
                 'salario.numeric'  => 'El salario debe ser un número válido.',
-                'salario.min'      => 'El salario debe ser mayor a cero.',
+                'salario.min' => 'El salario debe ser mayor a cero. El mínimo permitido es de $1.750.905 (SMLMV 2026).',
                 'email.required'   => 'El correo electrónico es obligatorio.',
                 'email.email'      => 'El correo electrónico no tiene un formato válido.',
                 'email.unique'     => 'Ya existe un empleado registrado con este correo electrónico.',
