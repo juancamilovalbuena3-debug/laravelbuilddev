@@ -5,6 +5,8 @@
         </h2>
     </x-slot>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <div class="py-6">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
 
@@ -41,8 +43,8 @@
                         <input type="text" name="puesto" id="puesto"
                                value="{{ old('puesto', $empleado->puesto) }}"
                                maxlength="100"
-                               placeholder="Ej: Desarrollador, Vendedor"
-                               class="border p-2 rounded w-full border-gray-300">
+                               readonly
+                               class="border p-2 rounded w-full border-gray-300 bg-gray-50 cursor-pointer">
                         <p class="text-red-600 text-sm mt-1" id="error-puesto">
                             @error('puesto'){{ $message }}@enderror
                         </p>
@@ -53,7 +55,7 @@
                         <label class="block font-semibold mb-1">Salario</label>
                         <input type="number" step="0.01" name="salario" id="salario"
                                value="{{ old('salario', $empleado->salario) }}"
-                               min="0"
+                               min="1750905"
                                max="999999999"
                                placeholder="Ej: 2500000"
                                class="border p-2 rounded w-full border-gray-300">
@@ -65,10 +67,11 @@
                     <!-- Email -->
                     <div>
                         <label class="block font-semibold mb-1">Email</label>
-                        <input type="email" name="email" id="email"
+                        <input type="text" name="email" id="email_empleado"
                                value="{{ old('email', $empleado->email) }}"
                                maxlength="100"
-                               placeholder="Ej: juan@empresa.com"
+                               autocomplete="off"
+                               placeholder="Ej: juan@gmail.com"
                                class="border p-2 rounded w-full border-gray-300">
                         <p class="text-red-600 text-sm mt-1" id="error-email">
                             @error('email'){{ $message }}@enderror
@@ -107,41 +110,14 @@
             }
         }
 
-        // ── Bloquear números y símbolos en "nombre" y "puesto" ───
-        ['nombre', 'puesto'].forEach(function(id) {
-            document.getElementById(id).addEventListener('keydown', function (e) {
-                const teclaControl = ['Backspace','Delete','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Tab','Home','End'].includes(e.key);
-                if (teclaControl) return;
-                if (!/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s\-]$/.test(e.key)) {
-                    e.preventDefault();
-                }
-            });
-
-            document.getElementById(id).addEventListener('paste', function (e) {
-                const texto = (e.clipboardData || window.clipboardData).getData('text');
-                if (!/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s\-]+$/.test(texto)) {
-                    e.preventDefault();
-                    setError(id, 'error-' + id, 'Este campo solo puede contener letras.');
-                }
-            });
-        });
-
         // ── Validaciones individuales ────────────────────────────
         function validarNombre() {
             const valor = document.getElementById('nombre').value.trim();
             if (!valor)            { setError('nombre', 'error-nombre', 'El nombre es obligatorio.');                      return false; }
             if (valor.length < 2)  { setError('nombre', 'error-nombre', 'El nombre debe tener al menos 2 caracteres.');    return false; }
             if (valor.length > 80) { setError('nombre', 'error-nombre', 'El nombre no puede superar los 80 caracteres.');  return false; }
-            if (!/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s\-]+$/.test(valor)) {
+            if (!/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]+$/.test(valor)) {
                 setError('nombre', 'error-nombre', 'El nombre solo puede contener letras.');
-                return false;
-            }
-            if (/[^aeiouáéíóúüAEIOUÁÉÍÓÚÜ]{5,}/i.test(valor)) {
-                setError('nombre', 'error-nombre', 'Por favor ingresa un nombre válido.');
-                return false;
-            }
-            if (/(.)\1{3,}/.test(valor)) {
-                setError('nombre', 'error-nombre', 'Por favor ingresa un nombre válido.');
                 return false;
             }
             setError('nombre', 'error-nombre', ''); return true;
@@ -149,47 +125,31 @@
 
         function validarPuesto() {
             const valor = document.getElementById('puesto').value.trim();
-            if (!valor)             { setError('puesto', 'error-puesto', 'El puesto es obligatorio.');                      return false; }
-            if (valor.length < 2)   { setError('puesto', 'error-puesto', 'El puesto debe tener al menos 2 caracteres.');   return false; }
-            if (valor.length > 100) { setError('puesto', 'error-puesto', 'El puesto no puede superar los 100 caracteres.'); return false; }
-            if (!/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s\-]+$/.test(valor)) {
-                setError('puesto', 'error-puesto', 'El puesto solo puede contener letras.');
-                return false;
-            }
+            if (!valor) { setError('puesto', 'error-puesto', 'El puesto es obligatorio.'); return false; }
             setError('puesto', 'error-puesto', ''); return true;
         }
 
         function validarSalario() {
             const str   = document.getElementById('salario').value.trim();
             const valor = parseFloat(str);
-            if (!str)                       { setError('salario', 'error-salario', 'El salario es obligatorio.');              return false; }
-            if (isNaN(valor) || valor < 0)  { setError('salario', 'error-salario', 'El salario debe ser un número positivo.'); return false; }
-            if (valor > 999999999)          { setError('salario', 'error-salario', 'El salario ingresado es demasiado alto.'); return false; }
+            if (!str)                        { setError('salario', 'error-salario', 'El salario es obligatorio.');                              return false; }
+            if (isNaN(valor) || valor <= 0)  { setError('salario', 'error-salario', 'El salario debe ser un número positivo.');                 return false; }
+            if (valor < 1750905)             { setError('salario', 'error-salario', 'El salario mínimo permitido es de $1.750.905 (SMLMV 2026).'); return false; }
+            if (valor > 999999999)           { setError('salario', 'error-salario', 'El salario ingresado es demasiado alto.');                 return false; }
             setError('salario', 'error-salario', ''); return true;
         }
 
         function validarEmail() {
-            const valor = document.getElementById('email').value.trim();
-            const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const valor = document.getElementById('email_empleado').value.trim();
             if (!valor) {
-                setError('email', 'error-email', 'El email es obligatorio.');
+                setError('email_empleado', 'error-email', 'El email es obligatorio.');
                 return false;
             }
-            if (valor.length > 100) {
-                setError('email', 'error-email', 'El email no puede superar los 100 caracteres.');
+            if (!activeSuffix) {
+                setError('email_empleado', 'error-email', 'Selecciona un dominio del listado (ej: @gmail.com).');
                 return false;
             }
-            if (!regexEmail.test(valor)) {
-                setError('email', 'error-email', 'Ingresa un email válido. Ej: juan@empresa.com');
-                return false;
-            }
-            // Validar que el dominio no sea absurdo (mínimo 2 chars después del punto)
-            const dominio = valor.split('@')[1];
-            if (dominio && dominio.split('.').pop().length < 2) {
-                setError('email', 'error-email', 'El dominio del email no es válido.');
-                return false;
-            }
-            setError('email', 'error-email', ''); return true;
+            setError('email_empleado', 'error-email', ''); return true;
         }
 
         // ── Envío ────────────────────────────────────────────────
@@ -205,8 +165,256 @@
 
         // ── Listeners en tiempo real ─────────────────────────────
         document.getElementById('nombre').addEventListener('input',  validarNombre);
-        document.getElementById('puesto').addEventListener('input',  validarPuesto);
         document.getElementById('salario').addEventListener('input', validarSalario);
-        document.getElementById('email').addEventListener('input',   validarEmail);
     </script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+        // ── NOMBRE ──────────────────────────────────────────────────────────
+        const nombreInput = document.getElementById('nombre');
+        if (nombreInput) {
+            nombreInput.addEventListener('keydown', function (e) {
+                if ((e.key === ' ' || e.code === 'Space') && this.value.length === 0) {
+                    e.preventDefault();
+                }
+            });
+
+            nombreInput.addEventListener('input', function () {
+                const pos = this.selectionStart;
+                let cleaned = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñÜü ]/g, '');
+                cleaned = cleaned.replace(/  +/g, ' ');
+                cleaned = cleaned.replace(/^ /, '');
+                if (this.value !== cleaned) {
+                    this.value = cleaned;
+                    this.selectionStart = this.selectionEnd = Math.min(pos, cleaned.length);
+                }
+            });
+
+            nombreInput.addEventListener('paste', function (e) {
+                e.preventDefault();
+                const pasted = (e.clipboardData || window.clipboardData).getData('text');
+                let cleaned = pasted.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñÜü ]/g, '').replace(/  +/g, ' ').trim();
+                const start = this.selectionStart;
+                const end   = this.selectionEnd;
+                this.value  = this.value.substring(0, start) + cleaned + this.value.substring(end);
+                this.selectionStart = this.selectionEnd = start + cleaned.length;
+            });
+        }
+
+        // ── PUESTO (readonly + dropdown SweetAlert) ──────────────────────────
+        const puestoInput = document.getElementById('puesto');
+        if (puestoInput) {
+            const PUESTOS = [
+                'Empleado'
+            ];
+
+            puestoInput.addEventListener('click', function () {
+                Swal.fire({
+                    title: 'Seleccionar Puesto',
+                    input: 'select',
+                    inputOptions: PUESTOS.reduce((acc, p) => { acc[p] = p; return acc; }, {}),
+                    inputValue: this.value || '',
+                    showCancelButton: true,
+                    confirmButtonText: 'Seleccionar',
+                    cancelButtonText: 'Cancelar',
+                    inputPlaceholder: 'Selecciona un puesto',
+                }).then((result) => {
+                    if (result.isConfirmed && result.value) {
+                        puestoInput.value = result.value;
+                        setError('puesto', 'error-puesto', '');
+                    }
+                });
+            });
+        }
+
+        // ── EMAIL ────────────────────────────────────────────────────────────
+        const emailInput = document.getElementById('email_empleado');
+        if (emailInput) {
+
+            const DOMAINS = [
+                '@gmail.com',
+                '@hotmail.com',
+                '@outlook.com',
+                '@yahoo.com',
+                '@mail.com',
+                '@icloud.com',
+                '@protonmail.com',
+                '@proton.me',
+            ];
+
+            const dropdown = document.createElement('ul');
+            dropdown.style.cssText = `
+                position: absolute;
+                background: #fff;
+                border: 1px solid #d1d5db;
+                border-radius: 8px;
+                box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+                list-style: none;
+                margin: 2px 0 0 0;
+                padding: 4px 0;
+                width: ${emailInput.offsetWidth}px;
+                z-index: 9999;
+                display: none;
+                font-family: inherit;
+                font-size: 0.95em;
+            `;
+            emailInput.parentElement.style.position = 'relative';
+            emailInput.parentElement.appendChild(dropdown);
+
+            // Detectar si el valor actual ya tiene un dominio válido
+            const valorActual = emailInput.value;
+            DOMAINS.forEach(function (d) {
+                if (valorActual.endsWith(d)) {
+                    window.activeSuffix = d;
+                }
+            });
+            if (typeof window.activeSuffix === 'undefined') window.activeSuffix = null;
+
+            function getLocalPart(val) {
+                const atIdx = val.indexOf('@');
+                return atIdx !== -1 ? val.substring(0, atIdx) : val;
+            }
+
+            function showDropdown(localPart) {
+                dropdown.innerHTML = '';
+                DOMAINS.forEach(function (domain) {
+                    const li = document.createElement('li');
+                    li.textContent = localPart + domain;
+                    li.style.cssText = `
+                        padding: 8px 14px;
+                        cursor: pointer;
+                        color: #374151;
+                        transition: background 0.15s;
+                    `;
+                    li.addEventListener('mouseenter', function () { this.style.background = '#f3f4f6'; });
+                    li.addEventListener('mouseleave', function () { this.style.background = ''; });
+                    li.addEventListener('mousedown', function (e) {
+                        e.preventDefault();
+                        selectDomain(domain, localPart);
+                    });
+                    dropdown.appendChild(li);
+                });
+                dropdown.style.width = emailInput.offsetWidth + 'px';
+                dropdown.style.display = 'block';
+            }
+
+            function hideDropdown() {
+                dropdown.style.display = 'none';
+            }
+
+            function selectDomain(domain, localPart) {
+                window.activeSuffix = domain;
+                emailInput.value = localPart + domain;
+                const pos = localPart.length;
+                emailInput.focus();
+                emailInput.selectionStart = emailInput.selectionEnd = pos;
+                hideDropdown();
+            }
+
+            function suffixStart() {
+                if (!window.activeSuffix) return -1;
+                const idx = emailInput.value.lastIndexOf(window.activeSuffix);
+                return idx !== -1 ? idx : -1;
+            }
+
+            emailInput.addEventListener('keydown', function (e) {
+                if (e.key === ' ' || e.code === 'Space') {
+                    e.preventDefault();
+                    return;
+                }
+
+                const pos      = this.selectionStart;
+                const selEnd   = this.selectionEnd;
+                const sfxStart = suffixStart();
+
+                if (sfxStart === -1) return;
+
+                if (e.key === 'Backspace' || e.key === 'Delete') {
+                    if (pos <= sfxStart && selEnd <= sfxStart) return;
+                    if (pos === sfxStart && selEnd === sfxStart) {
+                        window.activeSuffix = null;
+                        return;
+                    }
+                    e.preventDefault();
+                    return;
+                }
+
+                if (pos > sfxStart || selEnd > sfxStart) {
+                    if (e.key.length === 1) e.preventDefault();
+                }
+            });
+
+            emailInput.addEventListener('input', function () {
+                const val = this.value.replace(/\s/g, '');
+                if (this.value !== val) this.value = val;
+
+                if (window.activeSuffix) {
+                    if (!this.value.endsWith(window.activeSuffix)) {
+                        const local = getLocalPart(this.value);
+                        this.value = local + window.activeSuffix;
+                    }
+                    hideDropdown();
+                    return;
+                }
+
+                const atIdx = this.value.indexOf('@');
+                if (atIdx !== -1) {
+                    const local = this.value.substring(0, atIdx);
+                    const typed = this.value.substring(atIdx);
+                    const matches = DOMAINS.filter(d => d.startsWith(typed));
+                    if (matches.length > 0) {
+                        showDropdown(local);
+                    } else {
+                        hideDropdown();
+                    }
+                } else {
+                    hideDropdown();
+                }
+            });
+
+            emailInput.addEventListener('paste', function (e) {
+                e.preventDefault();
+                let pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/\s/g, '');
+
+                if (window.activeSuffix) {
+                    if (pasted.includes('@')) pasted = pasted.split('@')[0];
+                    const sfxStart = suffixStart();
+                    const local    = sfxStart !== -1 ? this.value.substring(0, sfxStart) : '';
+                    const start    = Math.min(this.selectionStart, sfxStart !== -1 ? sfxStart : local.length);
+                    const end      = Math.min(this.selectionEnd,   sfxStart !== -1 ? sfxStart : local.length);
+                    this.value = local.substring(0, start) + pasted + local.substring(end) + window.activeSuffix;
+                    this.selectionStart = this.selectionEnd = start + pasted.length;
+                } else {
+                    const start = this.selectionStart;
+                    const end   = this.selectionEnd;
+                    this.value  = this.value.substring(0, start) + pasted + this.value.substring(end);
+                    this.selectionStart = this.selectionEnd = start + pasted.length;
+                    const atIdx = this.value.indexOf('@');
+                    if (atIdx !== -1) showDropdown(this.value.substring(0, atIdx));
+                }
+            });
+
+            emailInput.addEventListener('click', function () {
+                const sfxStart = suffixStart();
+                if (sfxStart !== -1 && this.selectionStart > sfxStart) {
+                    this.selectionStart = this.selectionEnd = sfxStart;
+                }
+            });
+
+            emailInput.addEventListener('blur', function () {
+                setTimeout(hideDropdown, 150);
+            });
+
+            emailInput.addEventListener('focus', function () {
+                const atIdx = this.value.indexOf('@');
+                if (atIdx !== -1 && !window.activeSuffix) {
+                    showDropdown(this.value.substring(0, atIdx));
+                }
+            });
+        }
+
+    });
+    </script>
+
 </x-app-layout>
