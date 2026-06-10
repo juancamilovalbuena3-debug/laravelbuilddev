@@ -206,7 +206,8 @@
         const puestoInput = document.getElementById('puesto');
         if (puestoInput) {
             const PUESTOS = [
-                'Empleado'
+                'Empleado',
+                'Empleada'
             ];
 
             puestoInput.addEventListener('click', function () {
