@@ -683,12 +683,12 @@ async def validar_empleado(request):
         errores['puesto'] = 'El puesto solo puede contener letras y espacios.'
 
     salario_raw = data.get('salario', '')
-    try:
-        salario = float(str(salario_raw).strip())
-        if salario <= 0:
-            errores['salario'] = 'El salario debe ser un valor mayor a cero.'
-        elif salario < 100000:
-            errores['salario'] = 'El salario mínimo permitido es de $100,000.'
+   try:
+    salario = float(str(salario_raw).strip())
+    if salario <= 0:
+        errores['salario'] = 'El salario debe ser un valor mayor a cero.'
+    elif salario < 1750905:
+        errores['salario'] = 'El salario mínimo permitido es de $1.750.905 (SMLMV 2026).'
         elif salario > 99999999:
             errores['salario'] = 'El salario no puede superar los $99,999,999.'
     except (ValueError, TypeError):
