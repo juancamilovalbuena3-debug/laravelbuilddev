@@ -100,8 +100,9 @@
                     <div>
                         <label class="block text-xs font-semibold text-gray-500 uppercase mb-2">Vehículo / Modelo</label>
                         <input type="text" id="vehiculoInput" value="{{ request('vehiculo') }}"
-                               placeholder="Ej: Mazda 3, KTM, Yamaha..."
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                               readonly
+                               placeholder="Haz clic para seleccionar marca..."
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 cursor-pointer">
                     </div>
                     <div class="flex gap-2">
                         <button type="button" onclick="aplicarFiltros()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg text-sm shadow transition">
@@ -275,6 +276,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         const PDF_BASE_URL      = '{{ rtrim(url("/compras"), "/") }}';
         const ELIMINAR_BASE_URL = '{{ rtrim(url("/compras"), "/") }}';
@@ -290,24 +292,94 @@
 
         let chartInstances = {};
 
+        // ── Marcas separadas por tipo (mismas listas que crear/editar) ──
+        const marcasCarros = [
+            'Toyota','Chevrolet','Ford','Honda','Nissan','Hyundai','Kia','Mazda',
+            'Volkswagen','VW','Renault','Fiat','Peugeot','Citroen','Seat','Skoda',
+            'BMW','Mercedes','Mercedes Benz','Audi','Volvo','Jeep','Dodge','Ram',
+            'Chrysler','Cadillac','Buick','GMC','Lincoln','Tesla','Subaru','Mitsubishi',
+            'Suzuki','Isuzu','Daewoo','Ssangyong','Chery','Great Wall','JAC','BYD',
+            'Geely','Haval','DFSK','Zotye','Foton','Hafei','Brilliance','Changan',
+            'Porsche','Ferrari','Lamborghini','Maserati','Alfa Romeo','Lancia',
+            'Land Rover','Range Rover','Jaguar','Mini','Bentley','Rolls Royce',
+            'Aston Martin','McLaren','Bugatti','Lexus','Infiniti','Acura','Genesis',
+            'Rivian','Lucid','Polestar','Dacia','Lada','Opel','Vauxhall','Holden',
+            'Saab','Pontiac','Oldsmobile','Hummer','Saturn','Scion','Trabant'
+        ];
+
+        const marcasMotos = [
+            'Bajaj','Yamaha','Kawasaki','KTM','Ducati','Triumph','Harley',
+            'Harley Davidson','Royal Enfield','Benelli','Aprilia','BMW Motorrad',
+            'Husqvarna','Norton','Indian','Moto Guzzi','MV Agusta','Bimota',
+            'Energica','Zero Motorcycles','AKT','Hero','TVS','Pulsar','Lifan',
+            'Loncin','Zongshen','CFMoto','Kymco','SYM','Italika','Veloci','Auteco',
+            'Jianshe','Skygo','Bera','Ranger','Corven','Zanella','Mondial','Motomel',
+            'Beta','Guerrero','Gilera','Cuxi','Wanxin','Yumbo','Forza','Dinamo',
+            'Skyjet','Leopard','Condor','IGM','AKT Motos','Auteco Mobility',
+            'Vespa','Piaggio','Derbi','Rieju','Sherco','GasGas','Husaberg',
+            'Ossa','Montesa','Bultaco','Raider','Duke'
+        ];
+
+        // Opciones combinadas: primero carros, luego motos, con separadores visuales
+        const opcionesVehiculo = {};
+        opcionesVehiculo['── Carros ──'] = '── Carros ──';
+        marcasCarros.forEach(m => { opcionesVehiculo[m] = m; });
+        opcionesVehiculo['── Motos ──'] = '── Motos ──';
+        marcasMotos.forEach(m => { opcionesVehiculo[m] = m; });
+
+        // Todas las marcas válidas (para validar que no elija un separador)
+        const todasLasMarcas = [...marcasCarros, ...marcasMotos].map(m => m.toLowerCase());
+
         document.addEventListener('DOMContentLoaded', () => {
             actualizarGraficasInicial();
 
-            // ── Bloqueo de espacios en inputs de filtro ───────────
-            // buscarInput y vehiculoInput: bloquear espacio solo al inicio
-            ['buscarInput', 'vehiculoInput'].forEach(function(id) {
-                const el = document.getElementById(id);
+            // ── Bloqueo de pegado y espacios en buscarInput ───────
+            const buscarEl = document.getElementById('buscarInput');
 
-                el.addEventListener('keydown', function(e) {
-                    if (e.key === ' ' && this.selectionStart === 0) e.preventDefault();
-                });
+            buscarEl.addEventListener('paste', function(e) {
+                e.preventDefault();
+            });
 
-                el.addEventListener('input', function() {
-                    if (this.value.startsWith(' ')) {
-                        const pos = this.selectionStart - 1;
-                        this.value = this.value.trimStart();
-                        const newPos = Math.max(0, pos);
-                        this.setSelectionRange(newPos, newPos);
+            buscarEl.addEventListener('keydown', function(e) {
+                if (e.key === ' ' && this.selectionStart === 0) e.preventDefault();
+            });
+
+            buscarEl.addEventListener('input', function() {
+                if (this.value.startsWith(' ')) {
+                    const pos = this.selectionStart - 1;
+                    this.value = this.value.trimStart();
+                    this.setSelectionRange(Math.max(0, pos), Math.max(0, pos));
+                }
+            });
+
+            // ── vehiculoInput: readonly + dropdown SweetAlert ─────
+            const vehiculoEl = document.getElementById('vehiculoInput');
+
+            vehiculoEl.addEventListener('paste', function(e) {
+                e.preventDefault();
+            });
+
+            vehiculoEl.addEventListener('click', function() {
+                Swal.fire({
+                    title: 'Filtrar por marca',
+                    input: 'select',
+                    inputOptions: opcionesVehiculo,
+                    inputValue: vehiculoEl.value || '',
+                    showCancelButton: true,
+                    confirmButtonText: 'Aplicar',
+                    cancelButtonText: 'Cancelar',
+                    inputPlaceholder: 'Selecciona una marca',
+                    preConfirm: (valor) => {
+                        // Rechazar si elige un separador
+                        if (!todasLasMarcas.includes(valor.toLowerCase())) {
+                            Swal.showValidationMessage('Por favor selecciona una marca válida.');
+                            return false;
+                        }
+                        return valor;
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed && result.value) {
+                        vehiculoEl.value = result.value;
                     }
                 });
             });
