@@ -171,16 +171,7 @@
         const puestoInput = document.getElementById('puesto');
         if (puestoInput) {
             const PUESTOS = [
-                'Administrador',
-                'Contador',
-                'Vendedor',
-                'Cajero',
-                'Supervisor',
-                'Recursos Humanos',
-                'Gerente',
-                'Asistente',
-                'Técnico',
-                'Recepcionista',
+                'Empleado'
             ];
 
             puestoInput.addEventListener('click', function () {
