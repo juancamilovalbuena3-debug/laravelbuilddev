@@ -200,8 +200,11 @@
                     <div id="campo-banco" class="hidden">
                         <label class="block text-xs md:text-sm font-semibold text-gray-700 mb-1">Banco</label>
                         <input type="text" name="banco" id="inp_banco" placeholder="Ej: Bancolombia"
-                               class="w-full border border-gray-300 bg-gray-50 rounded-lg px-3 py-2.5 md:px-4 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm text-sm" />
-                        <p class="text-red-500 text-xs mt-1 hidden" id="err-banco">⚠ Ingresa el nombre del banco.</p>
+                               autocomplete="off" spellcheck="false"
+                               class="w-full border border-gray-300 bg-gray-50 rounded-lg px-3 py-2.5 md:px-4 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm text-sm"
+                               oninput="validarBanco()" onkeydown="bloquearEspacioBanco(event)" onpaste="pegarSinEspaciosBanco(event)" />
+                        <p class="text-red-500 text-xs mt-1 hidden" id="err-banco">⚠ Ingresa un banco colombiano válido (ej: Bancolombia, Davivienda, BBVA).</p>
+                        <p class="text-green-600 text-xs mt-1 hidden" id="ok-banco">✔ Banco reconocido.</p>
                     </div>
 
                     <!-- Cuotas -->
@@ -274,7 +277,8 @@
                     <div>
                         <label class="block text-xs md:text-sm font-semibold text-gray-700 mb-1">Dirección de entrega</label>
                         <input type="text" name="direccion" id="inp_dir" required placeholder="Ej: Calle 15 # 30-45, Barrio Centro"
-                               class="w-full border border-gray-300 bg-gray-50 rounded-lg px-3 py-2.5 md:px-4 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm text-sm" />
+                               class="w-full border border-gray-300 bg-gray-50 rounded-lg px-3 py-2.5 md:px-4 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm text-sm"
+                               oninput="validarDireccion()" onpaste="return false;" />
                         <p class="text-red-500 text-xs mt-1 hidden" id="err-dir">⚠ Ingresa una dirección válida. Ej: Calle 15 # 30-45 o Carrera 7 # 12-34.</p>
                         <p class="text-green-600 text-xs mt-1 hidden" id="ok-dir">✔ Dirección válida.</p>
                     </div>
@@ -413,8 +417,7 @@
         // ── Bloquear espacios en campos que no los necesitan ─────────────────
         const camposSinEspacio = [
             'inp_doc', 'inp_tel', 'inp_tarjeta_num',
-            'inp_tarjeta_nom', 'inp_tarjeta_venc', 'inp_tarjeta_cvv',
-            'inp_banco'
+            'inp_tarjeta_nom', 'inp_tarjeta_venc', 'inp_tarjeta_cvv'
         ];
         camposSinEspacio.forEach(id => {
             const el = document.getElementById(id);
@@ -423,7 +426,6 @@
                 if (e.key === ' ') e.preventDefault();
             });
             el.addEventListener('input', () => {
-                // Limpiar espacios que lleguen por pegado (excepto tarjeta que tiene su formateador)
                 if (id !== 'inp_tarjeta_num') {
                     el.value = el.value.replace(/ /g, '');
                 }
@@ -498,7 +500,6 @@
         function validarNombre() {
             const el  = document.getElementById('inp_nombre');
             const val = el.value.trim();
-            // Mínimo 3 chars, solo letras con un espacio simple entre palabras
             const ok  = val.length >= 3
                 && /^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ]+(\s[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ]+)*$/.test(val);
             marcarCampo(el, ok);
@@ -541,16 +542,51 @@
             ok ? mostrarOk('err-metodo','ok-metodo') : mostrarError('err-metodo','ok-metodo');
             return ok;
         }
+
+        // ── BANCO: sin espacios + validación contra lista de bancos reales ───
+        const BANCOS_CO = [
+            'bancolombia','davivienda','bbva','bogota','bancobogota','bancodeoccidente','occidente',
+            'popular','bancopopular','gnbsudameris','gnb','itau','citibank','hsbc','scotiabank',
+            'colpatria','bancoagrario','agrario','finandina','bancamia','coopcentral','falabella',
+            'bancofalabella','pichincha','bancopichincha','mundomujer','coomeva','avvillas',
+            'nequi','daviplata','rappipay','lulo','lulobanco','movii','iris',
+            'coltefinanciera','serfinansa','confiar','cotrafa','bancoldex',
+            'procredit','cajasocial','bancoomeva','multibank','banrep','bancrepublica'
+        ];
+
+        function normBanco(v) {
+            return v.toLowerCase().replace(/\s+/g, '')
+                .replace(/[áàä]/g, 'a').replace(/[éèë]/g, 'e')
+                .replace(/[íìï]/g, 'i').replace(/[óòö]/g, 'o').replace(/[úùü]/g, 'u');
+        }
+
+        function bloquearEspacioBanco(e) {
+            if (e.key === ' ') e.preventDefault();
+        }
+
+        function pegarSinEspaciosBanco(e) {
+            e.preventDefault();
+            const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/\s+/g, '');
+            const inp = document.getElementById('inp_banco');
+            const pos = inp.selectionStart;
+            inp.value = inp.value.slice(0, pos) + pasted + inp.value.slice(inp.selectionEnd);
+            validarBanco();
+        }
+
         function validarBanco() {
             const el  = document.getElementById('inp_banco');
+            el.value  = el.value.replace(/\s/g, '');
             const val = el.value.trim();
             const visible = !document.getElementById('campo-banco').classList.contains('hidden');
             if (!visible) return true;
-            const ok = val.length >= 3;
+            if (!val) { limpiarMensaje('err-banco', 'ok-banco'); marcarCampo(el, false); return false; }
+            const norm = normBanco(val);
+            const ok = BANCOS_CO.some(b => norm.includes(normBanco(b)) || normBanco(b).includes(norm));
             marcarCampo(el, ok);
-            document.getElementById('err-banco').classList.toggle('hidden', ok);
+            ok ? mostrarOk('err-banco', 'ok-banco') : mostrarError('err-banco', 'ok-banco');
             return ok;
         }
+
         function validarTarjetaNum() {
             const el  = document.getElementById('inp_tarjeta_num');
             const val = el.value.replace(/\s/g, '');
@@ -566,7 +602,6 @@
             const val = el.value.trim();
             const visible = !document.getElementById('campo-tarjeta-nombre').classList.contains('hidden');
             if (!visible) return true;
-            // Nombre en tarjeta: solo letras con espacio simple entre palabras
             const ok = val.length >= 3
                 && /^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ]+(\s[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ]+)*$/.test(val);
             marcarCampo(el, ok);
@@ -608,36 +643,44 @@
             return ok;
         }
 
-        // ── Validación de dirección colombiana coherente ──────────────────────
+        // ── DIRECCIÓN: sin pegado, sin repetidos, formato colombiano ─────────
         function validarDireccion() {
             const el  = document.getElementById('inp_dir');
-            const val = el.value.trim();
+            const val = el.value;
 
-            // Rechazos inmediatos
-            if (val.length < 10) {
+            // Bloquear caracteres repetidos consecutivos (4 o más iguales)
+            if (/(.)\1{3,}/.test(val)) {
+                el.value = val.slice(0, -1);
+                return false;
+            }
+
+            const trim = val.trim();
+            if (!trim) { limpiarMensaje('err-dir', 'ok-dir'); return false; }
+
+            if (trim.length < 10) {
                 marcarCampo(el, false);
                 mostrarError('err-dir', 'ok-dir');
                 return false;
             }
             // Solo números → inválido
-            if (/^[\d\s\-#]+$/.test(val)) {
+            if (/^[\d\s\-#]+$/.test(trim)) {
                 marcarCampo(el, false);
                 mostrarError('err-dir', 'ok-dir');
                 return false;
             }
             // Una sola palabra sin números → inválido
-            if (val.split(' ').length < 2) {
+            if (trim.split(' ').length < 2) {
                 marcarCampo(el, false);
                 mostrarError('err-dir', 'ok-dir');
                 return false;
             }
 
             // Patrón 1: formato # típico colombiano (Calle 15 # 30-45)
-            const tieneFormato = /\d+\s*#\s*\d+[\-–]\d+/.test(val);
+            const tieneFormato = /\d+\s*#\s*\d+[\-–]\d+/.test(trim);
 
             // Patrón 2: empieza con palabra clave de dirección
             const palabrasClave = /^(calle|carrera|avenida|diagonal|transversal|circular|autopista|kilometro|km|cl\.?|cr\.?|cra\.?|kra\.?|cll\.?|av\.?|dg\.?|tv\.?|mz\.?|bloque|torre|manzana|barrio|vereda|sector|conjunto|urb\.?|urbanizacion|finca|hacienda|corregimiento|municipio)\s/i;
-            const empiezaConClave = palabrasClave.test(val);
+            const empiezaConClave = palabrasClave.test(trim);
 
             const ok = tieneFormato || empiezaConClave;
             marcarCampo(el, ok);
@@ -660,7 +703,6 @@
         document.getElementById('inp_doc').addEventListener('input', validarDocumento);
         document.getElementById('inp_nacimiento').addEventListener('change', validarNacimiento);
         document.getElementById('inp_tel').addEventListener('input', validarTelefono);
-        document.getElementById('inp_dir').addEventListener('input', validarDireccion);
         document.getElementById('inp_banco').addEventListener('input', validarBanco);
         document.getElementById('inp_tarjeta_num').addEventListener('input', validarTarjetaNum);
         document.getElementById('inp_tarjeta_nom').addEventListener('input', validarTarjetaNom);
